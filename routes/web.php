@@ -6,11 +6,7 @@ use App\Http\Controllers\AuthController;
 // === HALAMAN UTAMA ===
 Route::get('/', function () {
     return view('welcome');
-<<<<<<< HEAD
-})->name('welcome'); // ← WAJIB ADA INI
-=======
-})->name('welcome'); //
->>>>>>> 1780a40 (Penyesuian dengan desain)
+})->name('welcome'); 
 
 Route::get('/fitur', function () {
     return view('fitur');
