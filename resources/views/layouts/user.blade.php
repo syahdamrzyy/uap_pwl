@@ -28,7 +28,6 @@
         <span class="font-medium text-gray-700 text-sm">User</span>
         <span class="text-gray-500 text-sm">Mahasiswa</span>
       </div>
-<<<<<<< HEAD
 <a href="#" 
    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
    class="bg-red-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-red-600 transition">
@@ -38,12 +37,6 @@
 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
     @csrf
 </form>
-=======
-      <a href="{{ route('logout') }}" 
-         class="bg-red-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-red-600 transition">
-         Keluar
-      </a>
->>>>>>> 1780a40 (Penyesuian dengan desain)
     </div>
   </nav>
 
