@@ -83,8 +83,8 @@
         </div>
 
         <div class="flex items-center gap-6 font-medium text-gray-700">
-            <a href="#" class="hover:text-indigo-500">Beranda</a>
-            <a href="#" class="hover:text-indigo-500">Fitur</a>
+            <a href="{{ route('welcome') }}" class="text-indigo-600 font-semibold">Beranda</a>
+            <a href="{{ route('fitur') }}" class="hover:text-indigo-500">Fitur</a>
             <a href="#" class="hover:text-indigo-500">Tentang</a>
             <a href="{{ route('login') }}" 
                 class="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium hover:opacity-90 transition">

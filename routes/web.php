@@ -3,15 +3,18 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
-
+// === HALAMAN UTAMA ===
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome'); // ← WAJIB ADA INI
+
+Route::get('/fitur', function () {
+    return view('fitur');
+})->name('fitur');
+
+Route::get('/tentang', function () {
+    return view('tentang');
+})->name('tentang');
 
 // === AUTHENTICATION ===
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
@@ -22,14 +25,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// === EMAIL VERIFICATION (Custom) ===
-Route::get('/verify/{token}', [AuthController::class, 'verifyUser'])->name('verify.email');
-
 // === DASHBOARD USER ===
 Route::get('/home', function () {
     return view('users.dashboard-user');
 })->middleware('auth')->name('dashboard.user');
-
-Route::get('/auth', function () {
-    return view('auth.auth');
-});
