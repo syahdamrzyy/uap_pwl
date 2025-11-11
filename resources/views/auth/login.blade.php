@@ -1,90 +1,83 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | PERKEDEL</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-<body class="bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 min-h-screen flex flex-col">
+@extends('layouts.loginregister')
 
-    <!-- Navbar -->
-    <nav class="bg-white/10 backdrop-blur-md text-white flex justify-between items-center px-10 py-4 shadow-md">
-        <div class="flex items-center space-x-2">
-            <div class="bg-blue-500 w-8 h-8 rounded"></div>
-            <h1 class="text-xl font-bold">PERKEDEL</h1>
-        </div>
-        <ul class="flex space-x-8">
-            <li><a href="/" class="hover:text-blue-300">Beranda</a></li>
-            <li><a href="#" class="hover:text-blue-300">Fitur</a></li>
-            <li><a href="#" class="hover:text-blue-300">Tentang</a></li>
-        </ul>
-        <a href="/login" class="bg-white text-indigo-600 font-semibold px-5 py-2 rounded-xl hover:bg-gray-100 transition">Masuk</a>
-    </nav>
+@section('title', 'Login')
 
-    <!-- Konten Utama -->
-    <div class="flex flex-1 items-center justify-center px-6 py-12">
-        <div class="bg-white rounded-2xl shadow-xl p-10 w-full max-w-md">
-            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Masuk ke Akun Anda</h2>
-
-            <!-- Form Login -->
-            <form action="{{ route('login') }}" method="POST" class="space-y-5">
-                @csrf
-
-                <div>
-                    <label class="block text-gray-700 font-medium mb-1">Email</label>
-                    <input type="email" name="email" required
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-gray-700 font-medium mb-1">Password</label>
-                    <input type="password" name="password" required
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                </div>
-
-                <button type="submit"
-                    class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-2 rounded-xl font-semibold hover:opacity-90 transition">
-                    Masuk
-                </button>
-
-                <p class="text-center text-gray-600 text-sm mt-4">
-                    Belum punya akun?
-                    <a href="{{ route('register') }}" class="text-indigo-600 font-medium hover:underline">Daftar Sekarang</a>
-                </p>
-            </form>
-        </div>
+@section('content')
+    <!-- Left Section -->
+    <div class="text-white font-extrabold spaced-text text-5xl md:text-6xl md:w-1/2 text-center md:text-left mb-10 md:mb-0 leading-snug">
+        <p>LOGIN</p>
+        <p>ACCOUNT</p>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-gradient-to-r from-indigo-700 to-purple-700 text-white text-center py-4 text-sm">
-        PERKEDEL – Pengelolaan Efektif Ruang & Kebutuhan Data Elektronik Logistik <br>
-        © 2025 PERKEDEL. Sistem Peminjaman Barang Kampus.
-    </footer>
+    <!-- Right Section (Form) -->
+    <div class="bg-white rounded-2xl shadow-xl p-10 w-full max-w-lg">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-1">Selamat Datang Kembali</h2>
+        <p class="text-gray-400 mb-6 text-sm">Masuk ke akun Anda untuk melanjutkan</p>
+        
+        <!-- ✅ Flash Message -->
+        @if (session('success'))
+            <div class="mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md relative animate-fade-in-down">
+                {{ session('success') }}
+            </div>
+        @endif
 
-    <!-- SweetAlert Section -->
-    @if (session('error'))
-        <script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Login Gagal!',
-                text: '{{ session('error') }}',
-                confirmButtonColor: '#6366F1'
-            });
-        </script>
-    @endif
+        @if (session('error'))
+            <div class="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md relative animate-fade-in-down">
+                {{ session('error') }}
+            </div>
+        @endif
 
-    @if ($errors->any())
-        <script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Terjadi Kesalahan!',
-                text: '{{ $errors->first() }}',
-                confirmButtonColor: '#6366F1'
-            });
-        </script>
-    @endif
+        @if ($errors->any())
+            <div class="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md relative animate-fade-in-down">
+                <ul class="list-disc list-inside text-sm">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+        <!-- ✅ End Flash Message -->
 
-</body>
-</html>
+        <!-- Tabs -->
+        <div class="flex border-b mb-6 text-base">
+            <span class="w-1/2 text-center py-2 font-medium text-indigo-600 border-b-2 border-indigo-500">Masuk</span>
+            <a href="{{ route('register') }}" class="w-1/2 text-center py-2 font-medium text-gray-500 hover:text-indigo-500 transition">Daftar</a>
+        </div>
+
+        <form action="{{ route('login.post') }}" method="POST" class="space-y-6">
+            @csrf
+            <div>
+                <label for="email" class="block text-gray-700 text-sm font-medium mb-1">Email</label>
+                <input type="email" id="email" name="email" required
+                    class="w-full px-5 py-3 rounded-md bg-gray-100 border border-gray-200 focus:ring-2 focus:ring-indigo-400 outline-none">
+            </div>
+            <div>
+                <label for="password" class="block text-gray-700 text-sm font-medium mb-1">Password</label>
+                <input type="password" id="password" name="password" required
+                    class="w-full px-5 py-3 rounded-md bg-gray-100 border border-gray-200 focus:ring-2 focus:ring-indigo-400 outline-none">
+            </div>
+            <button type="submit"
+                class="w-full py-3 rounded-md bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium hover:opacity-90 transition text-lg">
+                Masuk
+            </button>
+        </form>
+    </div>
+
+    <!-- Animasi kecil -->
+    <style>
+        @keyframes fade-in-down {
+            0% { opacity: 0; transform: translateY(-10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down {
+            animation: fade-in-down 0.3s ease-out;
+        }
+    </style>
+
+    <script>
+        // Auto hide flash message setelah 4 detik
+        setTimeout(() => {
+            document.querySelectorAll('.animate-fade-in-down').forEach(el => el.remove());
+        }, 4000);
+    </script>
+@endsection

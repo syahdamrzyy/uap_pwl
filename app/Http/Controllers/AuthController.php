@@ -8,72 +8,117 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class AuthController extends Controller
 {
+    /* =========================
+     *  REGISTER
+     * ========================= */
     public function showRegister()
     {
         return view('auth.register');
     }
 
     public function register(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|string|email|max:255|unique:users',
-        'password' => 'required|string|min:8|confirmed',
-    ]);
+    {
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
 
-    $token = Str::random(64);
+        try {
+            $token = Str::random(64);
 
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => bcrypt($request->password),
-        'remember_token' => $token, // ← simpan token di sini!
-    ]);
+            $user = User::create([
+                'name'           => $request->name,
+                'email'          => $request->email,
+                'password'       => Hash::make($request->password),
+                'remember_token' => $token,
+            ]);
 
-    // Kirim email verifikasi
-    Mail::send('auth.verify', compact('user', 'token'), function ($message) use ($user) {
-        $message->to($user->email);
-        $message->subject('Verifikasi Email - PERKEDEL');
-    });
+            // Kirim email verifikasi
+            Mail::send('auth.verify', compact('user', 'token'), function ($message) use ($user) {
+                $message->to($user->email)
+                        ->subject('Verifikasi Email - PERKEDEL')
+                        ->from(config('mail.from.address'), config('mail.from.name'));
+            });
 
-    return redirect('/login')->with('success', 'Kami telah mengirim link verifikasi ke email kamu.');
-}
+            Log::info("User registered: {$user->email}, email verifikasi terkirim.");
+
+            return redirect('/login')->with('success', 'Registrasi berhasil! Silakan cek email untuk verifikasi akun.');
+
+        } catch (Exception $e) {
+            // Catat error di log Laravel
+            Log::error('Gagal mengirim email verifikasi: ' . $e->getMessage());
+
+            return redirect('/login')->with('error', 'Pendaftaran berhasil, tapi gagal mengirim email verifikasi.');
+        }
+    }
+
+    /* =========================
+     *  LOGIN
+     * ========================= */
     public function showLogin()
     {
         return view('auth.login');
     }
 
-public function login(Request $request)
-{
-    $credentials = $request->only('email', 'password');
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required|string',
+        ]);
 
-    if (!Auth::attempt($credentials)) {
-        return back()->with('error', 'Email atau password salah.');
+        $credentials = $request->only('email', 'password');
+
+        if (!Auth::attempt($credentials)) {
+            return back()->with('error', 'Email atau password salah.');
+        }
+
+        $user = Auth::user();
+
+        if (is_null($user->email_verified_at)) {
+            Auth::logout();
+            return redirect('/login')->with('error', 'Silakan verifikasi email Anda terlebih dahulu.');
+        }
+
+        return redirect()->route('dashboard.user')->with('success', 'Berhasil login!');
     }
 
-
-    if (Auth::user()->email_verified_at === null) {
+    /* =========================
+     *  LOGOUT
+     * ========================= */
+    public function logout(Request $request)
+    {
         Auth::logout();
-        return redirect('/login')->with('error', 'Silakan verifikasi email Anda terlebih dahulu.');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('success', 'Berhasil logout.');
     }
 
-    return redirect('/home')->with('success', 'Berhasil login.');
-}
+    /* =========================
+     *  VERIFIKASI EMAIL
+     * ========================= */
     public function verifyUser($token)
-{
-    $user = User::where('remember_token', $token)->first();
+    {
+        $user = User::where('remember_token', $token)->first();
 
-    if (!$user) {
-        return redirect('/login')->with('error', 'Token tidak valid atau sudah digunakan.');
+        if (!$user) {
+            return redirect('/login')->with('error', 'Token tidak valid atau sudah digunakan.');
+        }
+
+        $user->update([
+            'email_verified_at' => now(),
+            'remember_token'    => null,
+        ]);
+
+        Log::info("User verified: {$user->email}");
+
+        return redirect('/login')->with('success', 'Email kamu berhasil diverifikasi! Silakan login.');
     }
-
-    $user->email_verified_at = now();
-    $user->remember_token = null; // kosongkan token setelah digunakan
-    $user->save();
-
-    return redirect('/login')->with('success', 'Email kamu berhasil diverifikasi!');
-}
 }
