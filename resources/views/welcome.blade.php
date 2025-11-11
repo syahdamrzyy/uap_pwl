@@ -14,7 +14,7 @@
             overflow-y: auto;
         }
 
-        /* === BUBBLE BACKGROUND (warna seragam & elegan) === */
+        /* === BUBBLE BACKGROUND === */
         .bubble {
             position: absolute;
             border-radius: 50%;
@@ -24,45 +24,14 @@
             z-index: 0;
         }
 
-        .bubble-1 {
-            width: 380px;
-            height: 380px;
-            top: -60px;
-            right: 0;
-            animation-delay: 0s;
-        }
-
-        .bubble-2 {
-            width: 440px;
-            height: 440px;
-            bottom: 100px;
-            left: 0;
-            animation-delay: 3s;
-        }
-
-        .bubble-3 {
-            width: 240px;
-            height: 240px;
-            top: 45%;
-            right: 8%;
-            animation-delay: 6s;
-        }
-
-        .bubble-4 {
-            width: 200px;
-            height: 200px;
-            top: 10%;
-            left: 10%;
-            animation-delay: 9s;
-        }
+        .bubble-1 { width: 380px; height: 380px; top: -60px; right: 0; animation-delay: 0s; }
+        .bubble-2 { width: 440px; height: 440px; bottom: 100px; left: 0; animation-delay: 3s; }
+        .bubble-3 { width: 240px; height: 240px; top: 45%; right: 8%; animation-delay: 6s; }
+        .bubble-4 { width: 200px; height: 200px; top: 10%; left: 10%; animation-delay: 9s; }
 
         @keyframes float {
             0%, 100% { transform: translateY(0) rotate(0deg); }
             50% { transform: translateY(-25px) rotate(10deg); }
-        }
-
-        .gradient-bg {
-            background: linear-gradient(135deg, #a78bfa, #6366f1);
         }
     </style>
 </head>
@@ -83,9 +52,9 @@
         </div>
 
         <div class="flex items-center gap-6 font-medium text-gray-700">
-  <a href="{{ route('welcome') }}">Beranda</a>
-  <a href="{{ route('fitur') }}">Fitur</a>
-  <a href="{{ route('tentang') }}">Tentang</a>
+            <a href="{{ route('welcome') }}" class="text-indigo-600 font-semibold">Beranda</a>
+            <a href="{{ route('fitur') }}" class="hover:text-indigo-500">Fitur</a>
+            <a href="{{ route('tentang') }}" class="hover:text-indigo-500">Tentang</a>
             <a href="{{ route('login') }}" 
                 class="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium hover:opacity-90 transition">
                 Masuk
