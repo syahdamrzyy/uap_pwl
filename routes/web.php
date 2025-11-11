@@ -33,3 +33,16 @@ Route::get('/home', function () {
 Route::get('/auth', function () {
     return view('auth.auth');
 });
+
+// === SPLASH SCREEN ===
+Route::get('/', function () {
+    return view('welcome');
+})->name('welcome');
+
+Route::get('/fitur', function () {
+    return view('fitur');
+})->name('fitur');
+
+Route::get('/tentang', function () {
+    return view('tentang');
+})->name('tentang');
