@@ -81,7 +81,7 @@
     <div class="bubble bubble-3"></div>
     <div class="bubble bubble-4"></div>
 
-    <!-- Navbar -->
+     <!-- Navbar -->
     <nav class="bg-white shadow-md py-3 px-8 flex justify-between items-center relative z-10">
         <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded bg-gradient-to-br from-indigo-400 to-purple-500"></div>
@@ -89,9 +89,21 @@
         </div>
 
         <div class="flex items-center gap-6 font-medium text-gray-700">
-            <a href="#" class="hover:text-indigo-500 transition">Beranda</a>
-            <a href="#" class="hover:text-indigo-500 transition">Fitur</a>
-            <a href="#" class="hover:text-indigo-500 transition">Tentang</a>
+            <a href="{{ route('welcome') }}" 
+               class="{{ request()->routeIs('welcome') ? 'text-indigo-600 font-semibold' : 'hover:text-indigo-500' }}">
+               Beranda
+            </a>
+
+            <a href="{{ route('fitur') }}" 
+               class="{{ request()->routeIs('fitur') ? 'text-indigo-600 font-semibold' : 'hover:text-indigo-500' }}">
+               Fitur
+            </a>
+
+            <a href="{{ route('tentang') }}" 
+               class="{{ request()->routeIs('tentang') ? 'text-indigo-600 font-semibold' : 'hover:text-indigo-500' }}">
+               Tentang
+            </a>
+
             <a href="{{ route('login') }}" 
                class="px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium hover:opacity-90 transition">
                Masuk

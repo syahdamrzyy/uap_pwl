@@ -67,27 +67,32 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-    {
-        $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required|string',
-        ]);
+{
+    $request->validate([
+        'email'    => 'required|email',
+        'password' => 'required|string',
+    ]);
 
-        $credentials = $request->only('email', 'password');
+    $credentials = $request->only('email', 'password');
 
-        if (!Auth::attempt($credentials)) {
-            return back()->with('error', 'Email atau password salah.');
-        }
-
-        $user = Auth::user();
-
-        if (is_null($user->email_verified_at)) {
-            Auth::logout();
-            return redirect('/login')->with('error', 'Silakan verifikasi email Anda terlebih dahulu.');
-        }
-
-        return redirect()->route('dashboard.user')->with('success', 'Berhasil login!');
+    if (!Auth::attempt($credentials)) {
+        return back()->with('error', 'Email atau password salah.');
     }
+
+    $user = Auth::user();
+
+    if (is_null($user->email_verified_at)) {
+        Auth::logout();
+        return redirect('/login')->with('error', 'Silakan verifikasi email Anda terlebih dahulu.');
+    }
+
+    // ✅ Arahkan sesuai role
+    if ($user->role === 'admin') {
+        return redirect()->route('dashboard.admin')->with('success', 'Selamat datang, Admin!');
+    }
+
+    return redirect()->route('dashboard.user')->with('success', 'Berhasil login!');
+}
 
     /* =========================
      *  LOGOUT

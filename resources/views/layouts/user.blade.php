@@ -23,11 +23,27 @@
     </div>
 
     <div class="flex items-center gap-4">
-      <div class="flex items-center gap-2 bg-gray-100 px-4 py-1 rounded-full">
-        <div class="w-4 h-4 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500"></div>
-        <span class="font-medium text-gray-700 text-sm">User</span>
-        <span class="text-gray-500 text-sm">Mahasiswa</span>
-      </div>
+<div class="flex items-center gap-2 bg-gray-100 px-4 py-1 rounded-full">
+  <div class="w-4 h-4 rounded-full 
+      @if(Auth::user()->role === 'admin')
+          bg-gradient-to-br from-red-400 to-pink-500
+      @else
+          bg-gradient-to-br from-indigo-400 to-purple-500
+      @endif">
+  </div>
+
+  @if(Auth::check())
+    <span class="font-medium text-gray-700 text-sm">
+      {{ ucfirst(Auth::user()->role) }}
+    </span>
+    @if(Auth::user()->role === 'admin')
+      <span class="text-gray-500 text-sm">PERKEDEL</span>
+    @else
+      <span class="text-gray-500 text-sm">Mahasiswa</span>
+    @endif
+  @endif
+</div>
+
 <a href="#" 
    onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
    class="bg-red-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-red-600 transition">

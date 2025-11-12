@@ -34,3 +34,8 @@ Route::get('/home', function () {
 Route::get('/auth', function () {
     return view('auth.auth');
 })->name('auth');
+
+// === HALAMAN ADMIN ===
+Route::get('/admin/dashboard', function () {
+    return view('admin.dashboard-admin');
+})->middleware(['auth', 'admin'])->name('dashboard.admin');
