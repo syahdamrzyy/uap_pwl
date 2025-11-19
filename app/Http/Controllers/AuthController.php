@@ -109,21 +109,21 @@ class AuthController extends Controller
     /* =========================
      *  VERIFIKASI EMAIL
      * ========================= */
-    public function verifyUser($token)
-    {
-        $user = User::where('remember_token', $token)->first();
+public function verifyUser($token)
+{
+    $user = User::where('remember_token', $token)->first();
 
-        if (!$user) {
-            return redirect('/login')->with('error', 'Token tidak valid atau sudah digunakan.');
-        }
-
-        $user->update([
-            'email_verified_at' => now(),
-            'remember_token'    => null,
-        ]);
-
-        Log::info("User verified: {$user->email}");
-
-        return redirect('/login')->with('success', 'Email kamu berhasil diverifikasi! Silakan login.');
+    if (!$user) {
+        return redirect('/login')->with('error', 'Token tidak valid atau sudah digunakan.');
     }
+
+    $user->email_verified_at = now();
+    $user->remember_token = null;
+    $user->save();
+
+    // refresh cache user
+    $user->refresh();
+
+    return redirect('/login')->with('success', 'Email kamu berhasil diverifikasi! Silakan login.');
+}
 }

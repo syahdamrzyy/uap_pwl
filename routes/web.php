@@ -25,6 +25,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+
 // === DASHBOARD USER ===
 Route::get('/home', function () {
     return view('users.dashboard-user');
@@ -39,3 +40,5 @@ Route::get('/auth', function () {
 Route::get('/admin/dashboard', function () {
     return view('admin.dashboard-admin');
 })->middleware(['auth', 'admin'])->name('dashboard.admin');
+
+Route::get('/verify/{token}', [AuthController::class, 'verifyUser'])->name('verify.user');
