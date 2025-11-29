@@ -15,7 +15,7 @@
     <div class="bg-white rounded-2xl shadow p-6 flex items-center gap-4">
       <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-500"></div>
       <div>
-        <h3 class="text-3xl font-bold text-gray-800">45</h3>
+        <h3 class="text-3xl font-bold text-gray-800">{{ $total_barang_tersedia }}</h3>
         <p class="text-gray-500 text-sm">Barang Tersedia</p>
       </div>
     </div>
@@ -31,7 +31,7 @@
     <div class="bg-white rounded-2xl shadow p-6 flex items-center gap-4">
       <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-500"></div>
       <div>
-        <h3 class="text-3xl font-bold text-gray-800">12</h3>
+        <h3 class="text-3xl font-bold text-gray-800">{{ $total_dipinjam }}</h3>
         <p class="text-gray-500 text-sm">Total Dipinjam</p>
       </div>
     </div>
@@ -41,7 +41,7 @@
   <div class="bg-white rounded-2xl shadow p-6 mb-8">
     <div class="flex justify-between items-center mb-4">
       <h3 class="font-semibold text-gray-800 text-lg">Daftar Barang Tersedia</h3>
-      <a href="#" class="text-sm text-indigo-600 font-medium hover:underline">Lihat Semua →</a>
+      <a href="{{ route('barang.index') }}" class="text-sm text-indigo-600 font-medium hover:underline">Lihat Semua →</a>
     </div>
 
     <div class="flex items-center bg-gray-100 rounded-lg px-3 py-2 mb-4">
@@ -53,16 +53,18 @@
 
     <!-- Card Barang -->
     <div class="space-y-3">
+      @foreach($barangs as $barang)
       <div class="flex justify-between items-center bg-gray-50 rounded-xl p-4">
         <div>
-          <h4 class="font-semibold text-gray-800">Laptop</h4>
-          <p class="text-sm text-gray-500">Status</p>
+          <h4 class="font-semibold text-gray-800">{{ $barang->nama_barang }}</h4>
+          <p class="text-sm text-gray-500">{{ $barang->deskripsi }}</p>
         </div>
         <div class="flex gap-2">
           <span class="px-3 py-1 rounded-full bg-green-100 text-green-600 text-xs font-medium">Tersedia</span>
           <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-600 text-xs font-medium">Pinjam</span>
         </div>
       </div>
+      @endforeach
     </div>
   </div>
 

@@ -28,8 +28,15 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // === DASHBOARD USER ===
 Route::get('/home', function () {
-    return view('users.dashboard-user');
+    $barangs = \App\Models\Barang::take(5)->get();
+    $total_barang_tersedia = \App\Models\Barang::where('stok', '>', 0)->count();
+    $sedang_dipinjam = 0; // Placeholder, akan diupdate saat ada tabel peminjaman
+    $total_dipinjam = 0; // Placeholder, akan diupdate saat ada tabel peminjaman
+    return view('users.dashboard-user', compact('barangs', 'total_barang_tersedia', 'sedang_dipinjam', 'total_dipinjam'));
 })->middleware('auth')->name('dashboard.user');
+
+// === BARANG ===
+Route::get('/barang', [App\Http\Controllers\BarangController::class, 'index'])->middleware('auth')->name('barang.index');
 
 // === HALAMAN AUTH (opsional jika ada halaman gabungan login-register) ===
 Route::get('/auth', function () {
