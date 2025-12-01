@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('deskripsi');
             $table->integer('stok');
             $table->timestamps();
+            $table->string('foto')->nullable();
         });
     }
 

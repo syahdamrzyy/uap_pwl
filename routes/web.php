@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\BarangController;
 
 // === HALAMAN UTAMA ===
 Route::get('/', function () {
@@ -35,8 +36,6 @@ Route::get('/home', function () {
     return view('users.dashboard-user', compact('barangs', 'total_barang_tersedia', 'sedang_dipinjam', 'total_dipinjam'));
 })->middleware('auth')->name('dashboard.user');
 
-// === BARANG ===
-Route::get('/barang', [App\Http\Controllers\BarangController::class, 'index'])->middleware('auth')->name('barang.index');
 
 // === HALAMAN AUTH (opsional jika ada halaman gabungan login-register) ===
 Route::get('/auth', function () {
@@ -49,3 +48,20 @@ Route::get('/admin/dashboard', function () {
 })->middleware(['auth', 'admin'])->name('dashboard.admin');
 
 Route::get('/verify/{token}', [AuthController::class, 'verifyUser'])->name('verify.user');
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+
+    Route::get('/barang', [BarangController::class, 'index'])->name('admin.barang.index');
+    Route::get('/barang/create', [BarangController::class, 'create'])->name('admin.barang.create');
+    Route::post('/barang/store', [BarangController::class, 'store'])->name('admin.barang.store');
+
+    Route::get('/barang/{id}/edit', [BarangController::class, 'edit'])->name('admin.barang.edit');
+    Route::put('/barang/{id}', [BarangController::class, 'update'])->name('admin.barang.update');
+
+    Route::delete('/barang/{id}', [BarangController::class, 'destroy'])->name('admin.barang.delete');
+
+});
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::resource('barang', \App\Http\Controllers\Admin\BarangController::class);
+});
+
