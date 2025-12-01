@@ -34,7 +34,7 @@
 
   @if(Auth::check())
     <span class="font-medium text-gray-700 text-sm">
-      {{ ucfirst(Auth::user()->role) }}
+    {{ ucfirst(optional(Auth::user())->name ?? 'User') }}
     </span>
     @if(Auth::user()->role === 'admin')
       <span class="text-gray-500 text-sm">PERKEDEL</span>

@@ -2,7 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\Admin\BarangController;
+use App\Http\Controllers\UserDashboardController;
+use App\Http\Controllers\Admin\BarangController as AdminBarangController;
+use App\Http\Controllers\BarangController;
+use App\Http\Controllers\PeminjamanController;
 
 // === HALAMAN UTAMA ===
 Route::get('/', function () {
@@ -26,42 +29,43 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-
 // === DASHBOARD USER ===
-Route::get('/home', function () {
-    $barangs = \App\Models\Barang::take(5)->get();
-    $total_barang_tersedia = \App\Models\Barang::where('stok', '>', 0)->count();
-    $sedang_dipinjam = 0; // Placeholder, akan diupdate saat ada tabel peminjaman
-    $total_dipinjam = 0; // Placeholder, akan diupdate saat ada tabel peminjaman
-    return view('users.dashboard-user', compact('barangs', 'total_barang_tersedia', 'sedang_dipinjam', 'total_dipinjam'));
-})->middleware('auth')->name('dashboard.user');
+Route::get('/home', [UserDashboardController::class, 'index'])
+    ->middleware('auth')
+    ->name('dashboard.user');
 
+// === BARANG ===
+Route::get('/barang', [BarangController::class, 'index'])
+    ->middleware('auth')
+    ->name('barang.index');
 
-// === HALAMAN AUTH (opsional jika ada halaman gabungan login-register) ===
+// === PEMINJAMAN ===
+Route::get('/peminjaman/create/{id}', [PeminjamanController::class, 'create'])
+    ->middleware('auth')
+    ->name('peminjaman.create');
+
+Route::post('/peminjaman/store', [PeminjamanController::class, 'store'])
+    ->middleware('auth')
+    ->name('peminjaman.store');
+    
+// === HALAMAN AUTH OPSIONAL ===
 Route::get('/auth', function () {
     return view('auth.auth');
 })->name('auth');
 
 // === HALAMAN ADMIN ===
-Route::get('/admin/dashboard', function () {
-    return view('admin.dashboard-admin');
-})->middleware(['auth', 'admin'])->name('dashboard.admin');
-
-Route::get('/verify/{token}', [AuthController::class, 'verifyUser'])->name('verify.user');
-
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-
-    Route::get('/barang', [BarangController::class, 'index'])->name('admin.barang.index');
-    Route::get('/barang/create', [BarangController::class, 'create'])->name('admin.barang.create');
-    Route::post('/barang/store', [BarangController::class, 'store'])->name('admin.barang.store');
-
-    Route::get('/barang/{id}/edit', [BarangController::class, 'edit'])->name('admin.barang.edit');
-    Route::put('/barang/{id}', [BarangController::class, 'update'])->name('admin.barang.update');
-
-    Route::delete('/barang/{id}', [BarangController::class, 'destroy'])->name('admin.barang.delete');
-
-});
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('barang', \App\Http\Controllers\Admin\BarangController::class);
+
+    // Dashboard admin
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard-admin');
+    })->name('dashboard');
+
+    // CRUD barang admin
+    Route::resource('barang', AdminBarangController::class);
 });
 
+
+// === VERIFIKASI EMAIL ===
+Route::get('/verify/{token}', [AuthController::class, 'verifyUser'])
+    ->name('verify.user');

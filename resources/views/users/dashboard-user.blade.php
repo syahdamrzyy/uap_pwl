@@ -6,7 +6,7 @@
 
   <!-- Header Section -->
   <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-6 rounded-2xl shadow-md mb-8">
-    <h2 class="text-2xl font-bold">Selamat Datang, User! 👋</h2>
+  <h2 class="text-2xl font-bold">Selamat Datang, {{ auth()->user()->name }}! 👋</h2>
     <p class="text-sm mt-1">Kelola peminjaman barang inventaris kampus dengan mudah dan cepat</p>
   </div>
 
@@ -23,7 +23,7 @@
     <div class="bg-white rounded-2xl shadow p-6 flex items-center gap-4">
       <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-500"></div>
       <div>
-        <h3 class="text-3xl font-bold text-gray-800">2</h3>
+        <h3 class="text-3xl font-bold text-gray-800">{{ $sedang_dipinjam }}</h3>
         <p class="text-gray-500 text-sm">Sedang Dipinjam</p>
       </div>
     </div>
@@ -61,62 +61,74 @@
         </div>
         <div class="flex gap-2">
           <span class="px-3 py-1 rounded-full bg-green-100 text-green-600 text-xs font-medium">Tersedia</span>
-          <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-600 text-xs font-medium">Pinjam</span>
-        </div>
+<a href="{{ route('peminjaman.create', $barang->id) }}"
+   class="inline-block no-underline cursor-pointer px-3 py-1 rounded-full bg-purple-100 text-purple-600 text-xs font-medium hover:bg-purple-200">
+    Pinjam
+</a>        </div>
       </div>
       @endforeach
     </div>
   </div>
 
   <!-- Aktivitas Terbaru Section -->
-  <div class="bg-white rounded-2xl shadow p-6">
-    <h3 class="font-semibold text-gray-800 text-lg mb-4">Aktivitas Terbaru</h3>
+  <div class="space-y-4">
 
-    <div class="space-y-4">
-      <!-- Item 1 -->
-      <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-4 border-l-4 border-green-500">
-        <div class="text-green-500 text-xl">✔</div>
-        <div>
-          <p class="font-semibold text-gray-800">Peminjaman Disetujui</p>
-          <p class="text-sm text-gray-600">Laptop</p>
-          <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">Disetujui</span>
-          <p class="text-xs text-gray-400 mt-1">2 jam yang lalu</p>
-        </div>
+@forelse ($aktivitas as $item)
+    <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-4 
+      border-l-4
+      @if($item->status == 'Disetujui') border-green-500
+      @elseif($item->status == 'Menunggu') border-yellow-400
+      @elseif($item->status == 'Ditolak') border-red-500
+      @else border-blue-500
+      @endif
+    ">
+      
+      <!-- ICON -->
+      <div class="text-xl
+        @if($item->status == 'Disetujui') text-green-500
+        @elseif($item->status == 'Menunggu') text-yellow-400
+        @elseif($item->status == 'Ditolak') text-red-500
+        @else text-blue-500
+        @endif
+      ">
+        @if($item->status == 'Disetujui') ✔
+        @elseif($item->status == 'Menunggu') ⏳
+        @elseif($item->status == 'Ditolak') ✖
+        @else 🔄
+        @endif
       </div>
 
-      <!-- Item 2 -->
-      <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-4 border-l-4 border-yellow-400">
-        <div class="text-yellow-400 text-xl">⏳</div>
-        <div>
-          <p class="font-semibold text-gray-800">Pengajuan Peminjaman</p>
-          <p class="text-sm text-gray-600">Laptop</p>
-          <span class="text-xs text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">Menunggu</span>
-          <p class="text-xs text-gray-400 mt-1">2 jam yang lalu</p>
-        </div>
+      <!-- TEKS -->
+      <div>
+        <p class="font-semibold text-gray-800">
+          {{ $item->status }}
+        </p>
+
+        <p class="text-sm text-gray-600">
+          {{ $item->barang->nama_barang ?? '-' }}
+        </p>
+
+        <span class="text-xs px-2 py-1 rounded-full 
+          @if($item->status == 'Disetujui') text-green-600 bg-green-100
+          @elseif($item->status == 'Menunggu') text-yellow-600 bg-yellow-100
+          @elseif($item->status == 'Ditolak') text-red-600 bg-red-100
+          @else text-blue-600 bg-blue-100
+          @endif
+        ">
+          {{ $item->status }}
+        </span>
+
+        <p class="text-xs text-gray-400 mt-1">
+          {{ $item->created_at->diffForHumans() }}
+        </p>
       </div>
 
-      <!-- Item 3 -->
-      <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-4 border-l-4 border-green-500">
-        <div class="text-green-500 text-xl">✔</div>
-        <div>
-          <p class="font-semibold text-gray-800">Pengembalian Selesai</p>
-          <p class="text-sm text-gray-600">Laptop</p>
-          <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">Selesai</span>
-          <p class="text-xs text-gray-400 mt-1">2 jam yang lalu</p>
-        </div>
-      </div>
-
-      <!-- Item 4 -->
-      <div class="flex items-start gap-4 bg-gray-50 rounded-xl p-4 border-l-4 border-red-500">
-        <div class="text-red-500 text-xl">✖</div>
-        <div>
-          <p class="font-semibold text-gray-800">Peminjaman Ditolak</p>
-          <p class="text-sm text-gray-600">Laptop</p>
-          <span class="text-xs text-red-600 bg-red-100 px-2 py-1 rounded-full">Ditolak</span>
-          <p class="text-xs text-gray-400 mt-1">2 jam yang lalu</p>
-        </div>
-      </div>
     </div>
-  </div>
+  @empty
+    <p class="text-gray-500 text-sm">Belum ada aktivitas.</p>
+  @endforelse
+
+</div>
+
 
 @endsection
