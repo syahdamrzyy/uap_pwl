@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Auth;
 
 class PeminjamanController extends Controller
 {
-    // Tampilkan form peminjaman
+    // ===============================
+    // USER - Tampilkan Form Peminjaman
+    // ===============================
     public function create($id)
     {
         $barangDipilih = Barang::findOrFail($id);   
@@ -17,10 +19,11 @@ class PeminjamanController extends Controller
         return view('users.peminjaman.create', compact('barangDipilih', 'barangs'));
     }
 
-    // Simpan peminjaman
+    // ===============================
+    // USER - Simpan Permintaan
+    // ===============================
     public function store(Request $request)
     {
-        // Validasi request
         $request->validate([
             'barang_id' => 'required|exists:barangs,id',
         ]);
@@ -29,9 +32,35 @@ class PeminjamanController extends Controller
             'user_id' => Auth::id(),
             'barang_id' => $request->barang_id,
             'tanggal_pinjam' => now()->toDateString(),
-            'status' => 'menunggu', // HARUS sesuai enum di DB
+            'status' => 'menunggu',
         ]);
 
         return redirect()->route('dashboard.user')->with('success', 'Peminjaman berhasil diajukan!');
+    }
+
+    // ===============================
+    // ADMIN - Dashboard Permintaan
+    // ===============================
+    public function index()
+    {
+        // Statistik
+        $total = Peminjaman::count();
+        $pending = Peminjaman::where('status', 'menunggu')->count();
+        $disetujui = Peminjaman::where('status', 'disetujui')->count();
+        $ditolak = Peminjaman::where('status', 'ditolak')->count();
+
+        // Daftar permintaan terbaru (limit 10)
+        $permintaanBaru = Peminjaman::with('user', 'barang')
+                            ->latest()
+                            ->take(10)
+                            ->get();
+
+        return view('admin.peminjaman_admin', compact(
+            'total',
+            'pending',
+            'disetujui',
+            'ditolak',
+            'permintaanBaru'
+        ));
     }
 }
