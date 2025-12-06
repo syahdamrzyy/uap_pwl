@@ -3,9 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserDashboardController;
-use App\Http\Controllers\Admin\BarangController as AdminBarangController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\PeminjamanController;
+use App\Http\Controllers\Admin\BarangController as AdminBarangController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,22 +15,13 @@ use App\Http\Controllers\PeminjamanController;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('welcome');
-
-Route::get('/fitur', function () {
-    return view('fitur');
-})->name('fitur');
-
-Route::get('/tentang', function () {
-    return view('tentang');
-})->name('tentang');
-
+Route::view('/', 'welcome')->name('welcome');
+Route::view('/fitur', 'fitur')->name('fitur');
+Route::view('/tentang', 'tentang')->name('tentang');
 
 /*
 |--------------------------------------------------------------------------
-| AUTHENTICATION
+| AUTH
 |--------------------------------------------------------------------------
 */
 
@@ -37,9 +30,7 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
 
 /*
 |--------------------------------------------------------------------------
@@ -51,7 +42,6 @@ Route::get('/home', [UserDashboardController::class, 'index'])
     ->middleware('auth')
     ->name('dashboard.user');
 
-
 /*
 |--------------------------------------------------------------------------
 | BARANG USER
@@ -62,36 +52,24 @@ Route::get('/barang', [BarangController::class, 'index'])
     ->middleware('auth')
     ->name('barang.index');
 
-
 /*
 |--------------------------------------------------------------------------
 | PEMINJAMAN USER
 |--------------------------------------------------------------------------
 */
 
-Route::get('/peminjaman/create/{id}', [PeminjamanController::class, 'create'])
-    ->middleware('auth')
-    ->name('peminjaman.create');
+Route::middleware('auth')->group(function () {
 
-Route::post('/peminjaman/store', [PeminjamanController::class, 'store'])
-    ->middleware('auth')
-    ->name('peminjaman.store');
+    Route::get('/peminjaman/create/{id}', [PeminjamanController::class, 'create'])
+        ->name('peminjaman.create');
 
-
-/*
-|--------------------------------------------------------------------------
-| HALAMAN AUTH OPSIONAL
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/auth', function () {
-    return view('auth.auth');
-})->name('auth');
-
+    Route::post('/peminjaman/store', [PeminjamanController::class, 'store'])
+        ->name('peminjaman.store');
+});
 
 /*
 |--------------------------------------------------------------------------
-| HALAMAN ADMIN
+| ADMIN AREA
 |--------------------------------------------------------------------------
 */
 
@@ -100,34 +78,46 @@ Route::middleware(['auth', 'admin'])
     ->name('admin.')
     ->group(function () {
 
-        // Tambahan: akses /admin langsung ke dashboard
-        Route::get('/', function () {
-            return redirect()->route('admin.dashboard');
-        })->name('home');
+        // Redirect /admin → admin.dashboard
+        Route::get('/', fn () => redirect()->route('admin.dashboard'))->name('home');
 
-        // Dashboard admin
-        Route::get('/dashboard', function () {
-            return view('admin.dashboard-admin');
-        })->name('dashboard');
+        // Dashboard Admin
+        Route::view('/dashboard', 'admin.dashboard-admin')->name('dashboard');
 
-        // CRUD barang admin (resource)
+        // CRUD Barang Admin (resource)
         Route::resource('barang', AdminBarangController::class);
 
-        // Daftar permintaan peminjaman (halaman admin)
+        // Halaman permintaan peminjaman admin
         Route::get('/peminjaman', [PeminjamanController::class, 'index'])
             ->name('peminjaman.index');
 
-        // Aksi Admin: Setujui / Tolak
+        // Approve / Reject pinjaman
         Route::post('/peminjaman/{id}/approve', [PeminjamanController::class, 'approve'])
             ->name('peminjaman.approve');
 
         Route::post('/peminjaman/{id}/reject', [PeminjamanController::class, 'reject'])
             ->name('peminjaman.reject');
 
-        Route::get('/manajemen-admin', [\App\Http\Controllers\Admin\AdminController::class, 'manajemenAdmin'])
+        // Manajemen Admin
+        Route::get('/manajemen-admin', [AdminController::class, 'manajemenAdmin'])
             ->name('manajemen.admin');
+
+            Route::post('/peminjaman/{id}/kembalikan', [PeminjamanController::class, 'kembalikan'])
+    ->name('peminjaman.kembalikan');
+
     });
 
+    Route::middleware(['auth','admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+            ->name('dashboard');
+
+    });
+
+    
 
 /*
 |--------------------------------------------------------------------------

@@ -1,5 +1,7 @@
 @extends('admin.layout')
 
+@section('title', 'Permintaan Peminjaman')
+
 @section('content')
 
 <style>
@@ -18,7 +20,6 @@
 
     <!-- STATISTIK -->
     <div class="grid grid-cols-4 gap-4 mb-6">
-
         <div class="bg-white p-5 rounded-xl shadow">
             <h3 class="text-sm">Total Permintaan</h3>
             <p class="text-3xl font-semibold mt-2">{{ $total }}</p>
@@ -26,79 +27,104 @@
 
         <div class="bg-white p-5 rounded-xl shadow">
             <h3 class="text-sm">Pending</h3>
-            <p class="text-3xl font-semibold mt-2 text-yellow-500">
-                {{ $pending }}
-            </p>
+            <p class="text-3xl font-semibold mt-2 text-yellow-500">{{ $pending }}</p>
         </div>
 
         <div class="bg-white p-5 rounded-xl shadow">
             <h3 class="text-sm">Disetujui</h3>
-            <p class="text-3xl font-semibold mt-2 text-green-600">
-                {{ $disetujui }}
-            </p>
+            <p class="text-3xl font-semibold mt-2 text-green-600">{{ $disetujui }}</p>
         </div>
 
         <div class="bg-white p-5 rounded-xl shadow">
             <h3 class="text-sm">Ditolak</h3>
-            <p class="text-3xl font-semibold mt-2 text-red-600">
-                {{ $ditolak }}
-            </p>
+            <p class="text-3xl font-semibold mt-2 text-red-600">{{ $ditolak }}</p>
         </div>
-
     </div>
 
     <!-- DAFTAR PERMINTAAN -->
     <div class="bg-white p-6 rounded-xl shadow">
-
-        <h3 class="text-lg font-semibold">Daftar Permintaan Terbaru</h3>
-        <p class="text-sm text-gray-500 mb-4">Permintaan peminjaman barang dari pengguna</p>
+        <h3 class="text-lg font-semibold mb-3">Permintaan Terbaru</h3>
+        <p class="text-sm text-gray-500 mb-4">Daftar pengajuan peminjaman pengguna</p>
 
         <div class="space-y-4">
 
-            @foreach ($permintaanBaru as $pinjam)
+            @forelse ($permintaanBaru as $pinjam)
+                @php
+                    $color = match($pinjam->status) {
+                        'menunggu' => 'yellow',
+                        'disetujui' => 'green',
+                        'ditolak' => 'red',
+                        default => 'gray',
+                    };
+                    $icon = match($pinjam->status) {
+                        'menunggu' => '⏳',
+                        'disetujui' => '✔️',
+                        'ditolak' => '❌',
+                        default => '📦',
+                    };
+                @endphp
 
-                <div class="border rounded-xl p-4 flex items-start justify-between">
+                <div class="border rounded-xl p-4 flex items-center justify-between hover:bg-gray-50 transition">
 
-                    <div class="flex gap-4">
-                        <!-- Ikon -->
-                        @if($pinjam->status == 'disetujui')
-                            <div class="text-green-600 text-4xl">✔️</div>
-                        @elseif($pinjam->status == 'ditolak')
-                            <div class="text-red-600 text-4xl">❌</div>
-                        @else
-                            <div class="text-gray-600 text-4xl">📦</div>
-                        @endif
+                    <!-- LEFT: Info -->
+                    <div class="flex items-start gap-4">
 
-                        <!-- Info -->
+                        <!-- Icon -->
+                        <div class="text-4xl text-{{ $color }}-600">
+                            {{ $icon }}
+                        </div>
+
                         <div>
-                            <p class="font-semibold text-lg">{{ $pinjam->user->name }}</p>
+                            <p class="font-semibold text-gray-800 text-lg">{{ $pinjam->user->name }}</p>
                             <p class="text-gray-600">{{ $pinjam->barang->nama_barang }}</p>
 
-                            <p class="text-sm text-gray-500 mt-1">
-                                Tanggal: {{ $pinjam->tanggal_pinjam }}
+                            <p class="text-xs text-gray-500 mt-1">
+                                Tanggal Pinjam: {{ $pinjam->tanggal_pinjam ?? '-' }}
                             </p>
                         </div>
+
                     </div>
 
-                    <!-- Status -->
-                    <div class="flex gap-2">
+                    <!-- RIGHT: Status + Button -->
+                    <div class="flex flex-col items-end gap-2">
 
+                        <!-- STATUS BADGE -->
+                        <span class="px-3 py-1 rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 text-sm">
+                            {{ ucfirst($pinjam->status) }}
+                        </span>
+
+                        <!-- ACTION BUTTONS (ONLY WHEN MENUNGGU) -->
                         @if($pinjam->status == 'menunggu')
-                            <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">Pending</span>
-                        @elseif($pinjam->status == 'disetujui')
-                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full">Disetujui</span>
-                        @else
-                            <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full">Ditolak</span>
+                            <div class="flex gap-2">
+
+                                <!-- APPROVE -->
+                                <form action="{{ route('admin.peminjaman.approve', $pinjam->id) }}" method="POST">
+                                    @csrf
+                                    <button class="px-4 py-1.5 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition">
+                                        Setujui
+                                    </button>
+                                </form>
+
+                                <!-- REJECT -->
+                                <form action="{{ route('admin.peminjaman.reject', $pinjam->id) }}" method="POST">
+                                    @csrf
+                                    <button class="px-4 py-1.5 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition">
+                                        Tolak
+                                    </button>
+                                </form>
+
+                            </div>
                         @endif
 
                     </div>
 
                 </div>
 
-            @endforeach
+            @empty
+                <p class="text-gray-500 text-sm">Belum ada permintaan peminjaman.</p>
+            @endforelse
 
         </div>
-
     </div>
 
 </div>

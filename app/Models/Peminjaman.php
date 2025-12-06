@@ -1,10 +1,8 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Barang;
 
 class Peminjaman extends Model
 {
@@ -13,20 +11,16 @@ class Peminjaman extends Model
     protected $table = 'peminjaman';
 
     protected $fillable = [
-        'barang_id',
-        'user_id',
-        'tanggal_pinjam',
-        'tanggal_kembali',
-        'status',
+        'barang_id','user_id','tanggal_pinjam','tanggal_kembali','status','keperluan'
     ];
 
     public function barang()
     {
-        return $this->belongsTo(Barang::class);
+        return $this->belongsTo(\App\Models\Barang::class);
     }
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(\App\Models\User::class);
     }
 }
