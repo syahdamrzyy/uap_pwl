@@ -132,7 +132,7 @@ class PeminjamanController extends Controller
 public function dikembalikanAdmin()
 {
     $peminjamans = Peminjaman::with('user', 'barang')
-        ->where('status', 'Dikembalikan')
+        ->where('status', 'dikembalikan')
         ->latest()
         ->get();
 
