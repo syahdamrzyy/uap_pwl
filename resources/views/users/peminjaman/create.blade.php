@@ -21,10 +21,11 @@
         </div>
     @endif
 
-    {{-- INFO BARANG --}}
-    <div class="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-xl flex items-center gap-4">
+    {{-- INFORMASI BARANG --}}
+    <div class="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-xl flex items-center gap-6">
 
-        <div class="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 border">
+        {{-- FOTO BARANG --}}
+        <div class="w-56 h-36 rounded-lg overflow-hidden bg-gray-100 border shadow">
             @if ($barangDipilih->foto)
                 <img src="{{ asset('storage/'.$barangDipilih->foto) }}" 
                      class="w-full h-full object-cover">
@@ -35,13 +36,22 @@
             @endif
         </div>
 
-        <div>
-            <p class="font-semibold text-lg text-purple-700">
+        <div class="flex-1">
+            <p class="font-semibold text-xl text-purple-700">
                 {{ $barangDipilih->nama_barang }}
             </p>
-            <p class="text-gray-600 text-sm">
+            <p class="text-gray-600 text-sm mb-2">
                 Stok tersedia: {{ $barangDipilih->stok }}
             </p>
+
+            {{-- DESKRIPSI --}}
+            @if ($barangDipilih->deskripsi)
+                <p class="text-gray-700 text-sm leading-snug">
+                    {{ $barangDipilih->deskripsi }}
+                </p>
+            @else
+                <p class="text-gray-400 text-sm italic">Tidak ada deskripsi.</p>
+            @endif
         </div>
     </div>
 
@@ -58,11 +68,38 @@
                 Keperluan
             </label>
 
-            <input type="text"
+            <input 
+                type="text"
                 name="keperluan"
+                id="keperluanInput"
                 class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-purple-500"
                 placeholder="Contoh: Untuk presentasi kelas"
-                required>
+                required
+            >
+        </div>
+
+        {{-- TANGGAL MULAI --}}
+        <div class="mb-5">
+            <label class="block font-semibold text-gray-700 mb-1">Tanggal Mulai</label>
+            <input 
+                type="date" 
+                name="tanggal_mulai" 
+                id="tanggalMulai"
+                class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-purple-500"
+                required
+            >
+        </div>
+
+        {{-- TANGGAL SELESAI --}}
+        <div class="mb-6">
+            <label class="block font-semibold text-gray-700 mb-1">Tanggal Selesai</label>
+            <input 
+                type="date" 
+                name="tanggal_selesai" 
+                id="tanggalSelesai"
+                class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-purple-500"
+                required
+            >
         </div>
 
         {{-- BUTTON --}}

@@ -25,11 +25,11 @@ class BarangController extends Controller
             'nama_barang' => 'required|string|max:255',
             'deskripsi'   => 'required',
             'stok'        => 'required|integer|min:0',
+            'kategori'    => 'required|in:Elektronik,Alat Tulis', // validasi kategori
             'foto'        => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
         $foto = null;
-
         if ($request->hasFile('foto')) {
             $foto = $request->file('foto')->store('barang', 'public');
         }
@@ -38,6 +38,7 @@ class BarangController extends Controller
             'nama_barang' => $request->nama_barang,
             'deskripsi'   => $request->deskripsi,
             'stok'        => $request->stok,
+            'kategori'    => $request->kategori, // simpan kategori
             'foto'        => $foto,
         ]);
 
@@ -58,11 +59,11 @@ class BarangController extends Controller
             'nama_barang' => 'required|string|max:255',
             'deskripsi'   => 'required',
             'stok'        => 'required|integer|min:0',
+            'kategori'    => 'required|in:Elektronik,Alat Tulis', // validasi kategori
             'foto'        => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
         $foto = $barang->foto;
-
         if ($request->hasFile('foto')) {
             $foto = $request->file('foto')->store('barang', 'public');
         }
@@ -71,6 +72,7 @@ class BarangController extends Controller
             'nama_barang' => $request->nama_barang,
             'deskripsi'   => $request->deskripsi,
             'stok'        => $request->stok,
+            'kategori'    => $request->kategori, // update kategori
             'foto'        => $foto,
         ]);
 

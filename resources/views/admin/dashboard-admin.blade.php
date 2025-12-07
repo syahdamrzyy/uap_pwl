@@ -11,7 +11,7 @@
 </div>
 
 <!-- STAT CARDS -->
-<div class="grid grid-cols-4 gap-6 mb-10">
+<div class="grid grid-cols-3 gap-6 mb-10">
 
     <div class="bg-white p-6 rounded-xl shadow">
         <p class="text-gray-600">Total Barang</p>
@@ -31,12 +31,6 @@
         <p class="text-yellow-600 text-sm">Menunggu persetujuan admin</p>
     </div>
 
-    <div class="bg-white p-6 rounded-xl shadow">
-        <p class="text-gray-600">Tingkat Pengembalian</p>
-        <h2 class="text-3xl font-bold text-purple-600">{{ $tingkatPengembalian }}%</h2>
-        <p class="text-purple-600 text-sm">Tingkat pengembalian barang</p>
-    </div>
-
 </div>
 
 <!-- GRAPHICS -->
@@ -44,8 +38,8 @@
 
     <!-- LINE CHART -->
     <div class="bg-white p-6 rounded-xl shadow">
-        <h3 class="font-medium mb-2">Tren Peminjaman & Pengembalian</h3>
-        <p class="text-sm text-gray-500 mb-4">Data 6 bulan terakhir (dummy)</p>
+        <h3 class="font-medium mb-2">Tren Peminjaman</h3>
+        <p class="text-sm text-gray-500 mb-4">6 bulan terakhir</p>
         <canvas id="lineChart" height="150"></canvas>
     </div>
 
@@ -63,41 +57,59 @@
     © 2025 PERKEDEL. Sistem Peminjaman Inventaris Kampus.
 </div>
 
+
 <!-- CHART.JS -->
 <script>
+    /* =============================
+     *  LINE CHART (Dinamis)
+     * ============================= */
     const lineChart = new Chart(document.getElementById('lineChart'), {
         type: 'line',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
-            datasets: [
-                {
-                    label: 'Peminjaman',
-                    data: [45, 52, 47, 55, 50, 68],
-                    borderColor: '#4F46E5',
-                    backgroundColor: '#4F46E533',
-                    tension: 0.4
-                },
-                {
-                    label: 'Pengembalian',
-                    data: [40, 48, 43, 50, 47, 62],
-                    borderColor: '#3B82F6',
-                    backgroundColor: '#3B82F633',
-                    tension: 0.4
-                }
-            ]
-        }
-    });
-
-    const pieChart = new Chart(document.getElementById('pieChart'), {
-        type: 'pie',
-        data: {
-            labels: ['Elektronik', 'Proyektor', 'Aksesoris', 'Lainnya'],
+            labels: {!! json_encode($months) !!},
             datasets: [{
-                data: [35, 25, 23, 15],
-                backgroundColor: ['#6366F1', '#93C5FD', '#A5B4FC', '#C7D2FE']
+                label: 'Peminjaman',
+                data: {!! json_encode($peminjaman) !!},
+                borderColor: '#4F46E5',
+                backgroundColor: '#4F46E533',
+                tension: 0.4
             }]
         }
     });
+
+
+  /* =============================
+ *  PIE CHART — Elektronik vs Alat Tulis (Real-time)
+ * ============================= */
+
+const labels = {!! json_encode(array_keys($kategoriCount)) !!};
+const values = {!! json_encode(array_values($kategoriCount)) !!};
+
+const pieChart = new Chart(document.getElementById('pieChart'), {
+    type: 'pie',
+    data: {
+        labels: labels,
+        datasets: [{
+            data: values,
+            backgroundColor: ['#4F46E5', '#38BDF8']
+        }]
+    },
+    options: {
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const kategori = context.label;
+                        const jumlah = context.formattedValue;
+                        return kategori + " : " + jumlah + " barang";
+                    }
+                }
+            }
+        }
+    }
+});
+
 </script>
+
 
 @endsection
