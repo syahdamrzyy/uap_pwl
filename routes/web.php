@@ -11,7 +11,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 
 /*
 |--------------------------------------------------------------------------
-| HALAMAN UTAMA
+| HALAMAN UMUM
 |--------------------------------------------------------------------------
 */
 
@@ -30,6 +30,7 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 /*
@@ -65,11 +66,14 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/peminjaman/store', [PeminjamanController::class, 'store'])
         ->name('peminjaman.store');
+
+    Route::post('/peminjaman/{id}/kembalikan', [PeminjamanController::class, 'kembalikan'])
+        ->name('peminjaman.kembalikan');
 });
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN AREA
+| ADMIN AREA (SATU BLOK SAJA ✅)
 |--------------------------------------------------------------------------
 */
 
@@ -78,20 +82,21 @@ Route::middleware(['auth', 'admin'])
     ->name('admin.')
     ->group(function () {
 
-        // Redirect /admin → admin.dashboard
-        Route::get('/', fn () => redirect()->route('admin.dashboard'))->name('home');
+        // Redirect /admin → dashboard
+        Route::get('/', fn () => redirect()->route('admin.dashboard'))
+            ->name('home');
 
-        // Dashboard Admin
-        Route::view('/dashboard', 'admin.dashboard-admin')->name('dashboard');
+        // Dashboard Admin (PAKAI CONTROLLER ✅)
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+            ->name('dashboard');
 
-        // CRUD Barang Admin (resource)
+        // CRUD Barang Admin
         Route::resource('barang', AdminBarangController::class);
 
-        // Halaman permintaan peminjaman admin
+        // Manajemen Peminjaman
         Route::get('/peminjaman', [PeminjamanController::class, 'index'])
             ->name('peminjaman.index');
 
-        // Approve / Reject pinjaman
         Route::post('/peminjaman/{id}/approve', [PeminjamanController::class, 'approve'])
             ->name('peminjaman.approve');
 
@@ -102,22 +107,10 @@ Route::middleware(['auth', 'admin'])
         Route::get('/manajemen-admin', [AdminController::class, 'manajemenAdmin'])
             ->name('manajemen.admin');
 
-            Route::post('/peminjaman/{id}/kembalikan', [PeminjamanController::class, 'kembalikan'])
-    ->name('peminjaman.kembalikan');
+        Route::get('/peminjaman/dikembalikan', [PeminjamanController::class, 'dikembalikanAdmin'])
+    ->name('peminjaman.dikembalikan');
 
     });
-
-    Route::middleware(['auth','admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-
-        Route::get('/dashboard', [AdminDashboardController::class, 'index'])
-            ->name('dashboard');
-
-    });
-
-    
 
 /*
 |--------------------------------------------------------------------------

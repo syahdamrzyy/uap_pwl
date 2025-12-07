@@ -11,63 +11,57 @@ use Carbon\Carbon;
 class AdminDashboardController extends Controller
 {
     public function index()
-    {
-        /* =============================
-         *  STATISTIK UTAMA
-         * ============================= */
-        $totalBarang = Barang::count();
-        $penggunaAktif = User::whereNotNull('email_verified_at')->count();
-        $pending = Peminjaman::where('status', 'menunggu')->count();
-        $dikembalikan = Peminjaman::where('status', 'dikembalikan')->count();
-        $totalPeminjaman = Peminjaman::count();
+{
+    // =============================
+    //  STATISTIK UTAMA
+    // =============================
+    $totalBarang = \App\Models\Barang::count();
+    $penggunaAktif = \App\Models\User::whereNotNull('email_verified_at')->count();
+    $pending = \App\Models\Peminjaman::where('status', 'menunggu')->count();
+    $dikembalikan = \App\Models\Peminjaman::where('status', 'dikembalikan')->count();
+    $totalPeminjaman = \App\Models\Peminjaman::count();
 
-        $tingkatPengembalian = $totalPeminjaman > 0
-            ? round(($dikembalikan / $totalPeminjaman) * 100)
-            : 0;
+    $tingkatPengembalian = $totalPeminjaman > 0
+        ? round(($dikembalikan / $totalPeminjaman) * 100)
+        : 0;
 
+    // =============================
+    //  LINE CHART → Tren Peminjaman
+    // =============================
+    $months = [];
+    $peminjaman = [];
 
-        /* =============================
-         *  LINE CHART → Tren Peminjaman
-         * ============================= */
-        $months = [];
-        $peminjaman = [];
+    for ($i = 5; $i >= 0; $i--) {
+        $month = \Carbon\Carbon::now()->subMonths($i);
+        $months[] = $month->format('M');
 
-        for ($i = 5; $i >= 0; $i--) { 
-            $month = Carbon::now()->subMonths($i);
-            $months[] = $month->format('M');
-
-            $peminjaman[] = Peminjaman::whereMonth('created_at', $month->month)
-                ->whereYear('created_at', $month->year)
-                ->count();
-        }
-
-
-        /* =============================
-         *  PIE CHART → kategori dinamis
-         * ============================= */
-        $kategoriList = Barang::select('kategori')
-            ->groupBy('kategori')
-            ->pluck('kategori');
-
-        $kategoriCount = [];
-
-        foreach ($kategoriList as $kategori) {
-            $kategoriCount[$kategori] = Barang::where('kategori', $kategori)->count();
-        }
-
-
-        /* =============================
-         *  RETURN
-         * ============================= */
-        return view('admin.dashboard-admin', compact(
-            'totalBarang',
-            'penggunaAktif',
-            'pending',
-            'tingkatPengembalian',
-            'months',
-            'peminjaman',
-            'kategoriList',
-            'kategoriCount'
-        ));
+        $peminjaman[] = \App\Models\Peminjaman::whereMonth('created_at', $month->month)
+            ->whereYear('created_at', $month->year)
+            ->count();
     }
+
+    // =============================
+    //  PIE CHART → STATUS BARANG ✅
+    // =============================
+    $statusLabels = ['Tersedia', 'Dipinjam', 'Tidak Tersedia'];
+
+    $statusCount = [
+        \App\Models\Barang::where('status', 'Tersedia')->count(),
+        \App\Models\Barang::where('status', 'Dipinjam')->count(),
+        \App\Models\Barang::where('status', 'Tidak Tersedia')->count(),
+    ];
+
+    // =============================
+    //  RETURN
+    // =============================
+    return view('admin.dashboard-admin', compact(
+        'totalBarang',
+        'penggunaAktif',
+        'pending',
+        'months',
+        'peminjaman',
+        'statusLabels',
+        'statusCount'
+    ));
+}
 }

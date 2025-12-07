@@ -9,28 +9,35 @@ use App\Models\Peminjaman;
 class UserDashboardController extends Controller
 {
     public function index()
-    {
-        $total_barang_tersedia = Barang::where('stok', '>', 0)->count();
+{
+    $userId = auth()->id();
 
-        $sedang_dipinjam = Peminjaman::where('user_id', auth()->id())
-            ->where('status', 'disetujui')
-            ->count();
+    // Statistik
+    $total_barang_tersedia = Barang::where('stok', '>', 0)->count();
 
-        $total_dipinjam = Peminjaman::where('user_id', auth()->id())->count();
+    $sedang_dipinjam = Peminjaman::where('user_id', $userId)
+        ->where('status', 'dipinjam') // ✅ HARUS SAMA PERSIS
+        ->count();
 
-        $barangs = Barang::where('stok', '>', 0)->get();
+    $total_dipinjam = Peminjaman::where('user_id', $userId)->count();
 
-        $aktivitas = Peminjaman::where('user_id', auth()->id())
-            ->latest()
-            ->take(10)
-            ->get();
+    // Barang tersedia (stok > 0)
+    $barangs = Barang::where('stok', '>', 0)->get();
 
-        return view('users.dashboard-user', compact(
-            'total_barang_tersedia',
-            'sedang_dipinjam',
-            'total_dipinjam',
-            'barangs',
-            'aktivitas'
-        ));
+    // Aktivitas user
+    $aktivitas = Peminjaman::with('barang')
+        ->where('user_id', $userId)
+        ->latest()
+        ->take(10)
+        ->get();
+
+    return view('users.dashboard-user', compact(
+        'total_barang_tersedia',
+        'sedang_dipinjam',
+        'total_dipinjam',
+        'barangs',
+        'aktivitas'
+    ));
+
     }
 }

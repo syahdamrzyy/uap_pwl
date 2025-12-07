@@ -82,30 +82,18 @@
  *  PIE CHART — Elektronik vs Alat Tulis (Real-time)
  * ============================= */
 
-const labels = {!! json_encode(array_keys($kategoriCount)) !!};
-const values = {!! json_encode(array_values($kategoriCount)) !!};
-
 const pieChart = new Chart(document.getElementById('pieChart'), {
     type: 'pie',
     data: {
-        labels: labels,
+        labels: @json($statusLabels),
         datasets: [{
-            data: values,
-            backgroundColor: ['#4F46E5', '#38BDF8']
+            data: @json($statusCount),
+            backgroundColor: [
+                '#22c55e', // Tersedia (Hijau)
+                '#facc15', // Dipinjam (Kuning)
+                '#ef4444'  // Tidak Tersedia (Merah)
+            ]
         }]
-    },
-    options: {
-        plugins: {
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const kategori = context.label;
-                        const jumlah = context.formattedValue;
-                        return kategori + " : " + jumlah + " barang";
-                    }
-                }
-            }
-        }
     }
 });
 

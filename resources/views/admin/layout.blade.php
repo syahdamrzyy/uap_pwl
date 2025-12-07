@@ -52,8 +52,16 @@
                 Permintaan Peminjaman
             </a>
 
+                <a href="{{ route('admin.peminjaman.dikembalikan') }}"
+   class="block px-4 py-2 rounded hover:bg-purple-100">
+    Barang Dikembalikan
+</a>
+
+
         </nav>
     </div>
+
+
 
     <div class="p-6">
     <div class="text-sm text-gray-600 mb-2">

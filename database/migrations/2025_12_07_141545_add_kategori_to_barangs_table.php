@@ -7,16 +7,18 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up(): void
-    {
-        Schema::table('barangs', function (Blueprint $table) {
-            $table->string('kategori')->nullable()->after('nama_barang');
-        });
-    }
+{
+    Schema::table('barangs', function (Blueprint $table) {
+        $table->enum('kategori', ['Elektronik', 'Alat Tulis'])
+              ->default('Elektronik')
+              ->after('stok');
+    });
+}
 
-    public function down(): void
-    {
-        Schema::table('barangs', function (Blueprint $table) {
-            $table->dropColumn('kategori');
-        });
-    }
+public function down(): void
+{
+    Schema::table('barangs', function (Blueprint $table) {
+        $table->dropColumn('kategori');
+    });
+}
 };
