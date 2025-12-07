@@ -8,15 +8,27 @@
     <form action="{{ route('admin.barang.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
+        {{-- Nama Barang --}}
         <label class="block mb-2 font-semibold">Nama Barang</label>
         <input type="text" name="nama_barang" class="w-full p-2 border rounded mb-4" required>
 
+        {{-- Deskripsi --}}
         <label class="block mb-2 font-semibold">Deskripsi</label>
         <textarea name="deskripsi" class="w-full p-2 border rounded mb-4" required></textarea>
 
+        {{-- Stok --}}
         <label class="block mb-2 font-semibold">Stok</label>
         <input type="number" name="stok" class="w-full p-2 border rounded mb-4" required>
 
+        {{-- Kategori --}}
+        <label class="block mb-2 font-semibold">Kategori</label>
+        <select name="kategori" class="w-full p-2 border rounded mb-4" required>
+            <option value="">-- Pilih Kategori --</option>
+            <option value="Elektronik">Elektronik</option>
+            <option value="Alat Tulis">Alat Tulis</option>
+        </select>
+
+        {{-- Foto --}}
         <label class="block mb-2 font-semibold">Foto Barang (opsional)</label>
         <input type="file" name="foto" class="w-full p-2 border rounded mb-4" accept="image/*">
 

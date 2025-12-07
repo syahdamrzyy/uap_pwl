@@ -38,10 +38,22 @@
             required
         >
 
-        {{-- Foto Barang --}}
-        <label class="block mb-2 font-semibold">Foto Barang (opsional)</label>
+        {{-- Kategori --}}
+        <label class="block mb-2 font-semibold">Kategori</label>
+        <select name="kategori" class="w-full p-2 border rounded mb-4" required>
+            <option value="Elektronik" {{ $barang->kategori == 'Elektronik' ? 'selected' : '' }}>
+                Elektronik
+            </option>
+            <option value="Alat Tulis" {{ $barang->kategori == 'Alat Tulis' ? 'selected' : '' }}>
+                Alat Tulis
+            </option>
+        </select>
+
+        {{-- Foto --}}
+        <label class="block mb-2 font-semibold">Foto Barang</label>
 
         @if($barang->foto)
+            <p class="text-gray-600 mb-2">Foto Saat Ini:</p>
             <img src="{{ asset('storage/'.$barang->foto) }}"
                  class="h-24 rounded mb-3 border">
         @else
@@ -55,7 +67,6 @@
             accept="image/*"
         >
 
-        {{-- Tombol --}}
         <div class="flex justify-between mt-4">
             <a href="{{ route('admin.barang.index') }}"
                class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">

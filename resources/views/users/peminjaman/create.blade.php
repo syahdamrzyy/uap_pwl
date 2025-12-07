@@ -20,10 +20,10 @@
     @endif
 
     {{-- Informasi Barang --}}
-    <div class="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-xl flex items-center gap-4">
+    <div class="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-xl flex items-center gap-6">
 
-        {{-- FOTO BARANG --}}
-        <div class="w-24 h-24 rounded-lg overflow-hidden bg-gray-100 border">
+        {{-- FOTO BARANG (BESAR & PANJANG) --}}
+        <div class="w-56 h-36 rounded-lg overflow-hidden bg-gray-100 border shadow">
             @if ($barangDipilih->foto)
                 <img src="{{ asset('storage/'.$barangDipilih->foto) }}"
                      class="w-full h-full object-cover">
@@ -34,9 +34,18 @@
             @endif
         </div>
 
-        <div>
-            <p class="font-semibold text-lg text-purple-700">{{ $barangDipilih->nama_barang }}</p>
-            <p class="text-gray-600 text-sm">Stok tersedia: {{ $barangDipilih->stok }}</p>
+        <div class="flex-1">
+            <p class="font-semibold text-xl text-purple-700">{{ $barangDipilih->nama_barang }}</p>
+            <p class="text-gray-600 text-sm mb-2">Stok tersedia: {{ $barangDipilih->stok }}</p>
+
+            {{-- DESKRIPSI --}}
+            @if ($barangDipilih->deskripsi)
+                <p class="text-gray-700 text-sm leading-snug">
+                    {{ $barangDipilih->deskripsi }}
+                </p>
+            @else
+                <p class="text-gray-400 text-sm italic">Tidak ada deskripsi.</p>
+            @endif
         </div>
     </div>
 
@@ -44,34 +53,8 @@
     <form id="formPinjam" action="{{ route('peminjaman.store') }}" method="POST">
         @csrf
 
-        {{-- Pilih Barang --}}
-        <div class="mb-5">
-            <label class="block font-semibold text-gray-700 mb-1">Pilih Barang</label>
-
-            <select name="barang_id" id="barangSelect"
-                class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-purple-500">
-
-                @foreach ($barangs as $barang)
-                    <option value="{{ $barang->id }}"
-                        data-foto="{{ $barang->foto }}"
-                        data-stok="{{ $barang->stok }}"
-                        {{ $barang->id == $barangDipilih->id ? 'selected' : '' }}>
-
-                        {{ $barang->nama_barang }} (Stok: {{ $barang->stok }})
-                    </option>
-                @endforeach
-            </select>
-        </div>
-
-        {{-- Preview Barang --}}
-        <div id="previewContainer" class="mb-6 hidden">
-            <div class="w-full h-40 rounded-lg overflow-hidden bg-gray-100 border mb-2 flex items-center justify-center">
-                <img id="previewImage" class="w-full h-full object-cover hidden">
-                <span id="noImageText" class="text-gray-400">Tidak ada foto</span>
-            </div>
-
-            <p id="stokInfo" class="text-sm text-gray-700"></p>
-        </div>
+        {{-- Hidden barang_id (auto terpilih dari dashboard) --}}
+        <input type="hidden" name="barang_id" value="{{ $barangDipilih->id }}">
 
         {{-- Keperluan --}}
         <div class="mb-5">
@@ -82,6 +65,31 @@
                 id="keperluanInput"
                 class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-purple-500"
                 placeholder="Contoh: Untuk presentasi kelas"
+                required
+            >
+        </div>
+
+        {{-- Tanggal Mulai --}}
+        <div class="mb-5">
+            <label class="block font-semibold text-gray-700 mb-1">Tanggal Mulai</label>
+            <input 
+                type="date" 
+                name="tanggal_mulai" 
+                id="tanggalMulai"
+                class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-purple-500"
+                required
+            >
+        </div>
+
+        {{-- Tanggal Selesai --}}
+        <div class="mb-6">
+            <label class="block font-semibold text-gray-700 mb-1">Tanggal Selesai</label>
+            <input 
+                type="date" 
+                name="tanggal_selesai" 
+                id="tanggalSelesai"
+                class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-purple-500"
+                required
             >
         </div>
 
@@ -120,50 +128,30 @@
 {{-- SCRIPT --}}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const barangSelect = document.getElementById("barangSelect");
-    const preview = document.getElementById("previewContainer");
-    const previewImg = document.getElementById("previewImage");
-    const noImg = document.getElementById("noImageText");
-    const stokInfo = document.getElementById("stokInfo");
     const keperluanInput = document.getElementById("keperluanInput");
+    const tanggalMulai = document.getElementById("tanggalMulai");
+    const tanggalSelesai = document.getElementById("tanggalSelesai");
     const btnOpenModal = document.getElementById("btnOpenModal");
 
     const modal = document.getElementById("modalConfirm");
     const btnCancel = document.getElementById("btnCancel");
 
-    function updatePreview() {
-        const selected = barangSelect.options[barangSelect.selectedIndex];
-
-        const foto = selected.dataset.foto;
-        const stok = selected.dataset.stok;
-
-        preview.classList.remove("hidden");
-
-        if (foto) {
-            previewImg.src = "/storage/" + foto;
-            previewImg.classList.remove("hidden");
-            noImg.classList.add("hidden");
-        } else {
-            previewImg.classList.add("hidden");
-            noImg.classList.remove("hidden");
-        }
-
-        stokInfo.textContent = "Stok tersedia: " + stok;
-        validateForm();
-    }
-
     function validateForm() {
-        btnOpenModal.disabled = keperluanInput.value.trim() === "";
+        const valid =
+            keperluanInput.value.trim() !== "" &&
+            tanggalMulai.value !== "" &&
+            tanggalSelesai.value !== "" &&
+            tanggalSelesai.value >= tanggalMulai.value;
+
+        btnOpenModal.disabled = !valid;
     }
 
-    barangSelect.addEventListener("change", updatePreview);
     keperluanInput.addEventListener("input", validateForm);
+    tanggalMulai.addEventListener("change", validateForm);
+    tanggalSelesai.addEventListener("change", validateForm);
 
-    // MODAL
     btnOpenModal.addEventListener("click", () => modal.classList.remove("hidden"));
     btnCancel.addEventListener("click", () => modal.classList.add("hidden"));
-
-    updatePreview(); // initial load
 });
 </script>
 
