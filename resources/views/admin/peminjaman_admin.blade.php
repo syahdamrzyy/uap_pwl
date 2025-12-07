@@ -1,132 +1,79 @@
 @extends('admin.layout')
 
-@section('title', 'Permintaan Peminjaman')
+@section('title', 'Manajemen Peminjaman')
 
 @section('content')
 
-<style>
-    .header-gradient {
-        background: linear-gradient(90deg, #6a5af9, #3b82f6, #06b6d4);
-    }
-</style>
+<div class="bg-white p-6 rounded-xl shadow">
 
-<div class="p-6">
+    <h2 class="text-2xl font-bold mb-4">
+        Manajemen Peminjaman Barang
+    </h2>
 
-    <!-- HEADER -->
-    <div class="header-gradient text-white rounded-xl p-5 shadow mb-6">
-        <h2 class="text-2xl font-semibold">Permintaan Peminjaman</h2>
-        <p>Kelola semua permintaan peminjaman barang</p>
-    </div>
-
-    <!-- STATISTIK -->
-    <div class="grid grid-cols-4 gap-4 mb-6">
-        <div class="bg-white p-5 rounded-xl shadow">
-            <h3 class="text-sm">Total Permintaan</h3>
-            <p class="text-3xl font-semibold mt-2">{{ $total }}</p>
+    @if(session('success'))
+        <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
+            {{ session('success') }}
         </div>
+    @endif
 
-        <div class="bg-white p-5 rounded-xl shadow">
-            <h3 class="text-sm">Pending</h3>
-            <p class="text-3xl font-semibold mt-2 text-yellow-500">{{ $pending }}</p>
-        </div>
+    <table class="w-full border rounded-lg overflow-hidden">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="p-3 text-left">User</th>
+                <th class="p-3 text-left">Barang</th>
+                <th class="p-3 text-left">Tanggal</th>
+                <th class="p-3 text-left">Status</th>
+                <th class="p-3 text-center">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
 
-        <div class="bg-white p-5 rounded-xl shadow">
-            <h3 class="text-sm">Disetujui</h3>
-            <p class="text-3xl font-semibold mt-2 text-green-600">{{ $disetujui }}</p>
-        </div>
+            @foreach($peminjamans as $p)
+            <tr class="border-t">
+                <td class="p-3">{{ $p->user->name }}</td>
+                <td class="p-3">{{ $p->barang->nama_barang }}</td>
+                <td class="p-3">{{ $p->tanggal_pinjam }}</td>
 
-        <div class="bg-white p-5 rounded-xl shadow">
-            <h3 class="text-sm">Ditolak</h3>
-            <p class="text-3xl font-semibold mt-2 text-red-600">{{ $ditolak }}</p>
-        </div>
-    </div>
+                <td class="p-3">
+                    <span class="px-3 py-1 rounded text-sm
+                        @if($p->status == 'menunggu') bg-yellow-100 text-yellow-700
+                        @elseif($p->status == 'disetujui') bg-green-100 text-green-700
+                        @else bg-red-100 text-red-700
+                        @endif">
+                        {{ ucfirst($p->status) }}
+                    </span>
+                </td>
 
-    <!-- DAFTAR PERMINTAAN -->
-    <div class="bg-white p-6 rounded-xl shadow">
-        <h3 class="text-lg font-semibold mb-3">Permintaan Terbaru</h3>
-        <p class="text-sm text-gray-500 mb-4">Daftar pengajuan peminjaman pengguna</p>
+                <td class="p-3 text-center space-x-2">
 
-        <div class="space-y-4">
+                    @if($p->status == 'menunggu')
+                        <form action="{{ route('admin.peminjaman.approve', $p->id) }}"
+                              method="POST" class="inline">
+                            @csrf
+                            <button class="bg-green-600 text-white px-3 py-1 rounded">
+                                Approve
+                            </button>
+                        </form>
 
-            @forelse ($permintaanBaru as $pinjam)
-                @php
-                    $color = match($pinjam->status) {
-                        'menunggu' => 'yellow',
-                        'disetujui' => 'green',
-                        'ditolak' => 'red',
-                        default => 'gray',
-                    };
-                    $icon = match($pinjam->status) {
-                        'menunggu' => '⏳',
-                        'disetujui' => '✔️',
-                        'ditolak' => '❌',
-                        default => '📦',
-                    };
-                @endphp
-
-                <div class="border rounded-xl p-4 flex items-center justify-between hover:bg-gray-50 transition">
-
-                    <!-- LEFT: Info -->
-                    <div class="flex items-start gap-4">
-
-                        <!-- Icon -->
-                        <div class="text-4xl text-{{ $color }}-600">
-                            {{ $icon }}
-                        </div>
-
-                        <div>
-                            <p class="font-semibold text-gray-800 text-lg">{{ $pinjam->user->name }}</p>
-                            <p class="text-gray-600">{{ $pinjam->barang->nama_barang }}</p>
-
-                            <p class="text-xs text-gray-500 mt-1">
-                                Tanggal Pinjam: {{ $pinjam->tanggal_pinjam ?? '-' }}
-                            </p>
-                        </div>
-
-                    </div>
-
-                    <!-- RIGHT: Status + Button -->
-                    <div class="flex flex-col items-end gap-2">
-
-                        <!-- STATUS BADGE -->
-                        <span class="px-3 py-1 rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 text-sm">
-                            {{ ucfirst($pinjam->status) }}
+                        <form action="{{ route('admin.peminjaman.reject', $p->id) }}"
+                              method="POST" class="inline">
+                            @csrf
+                            <button class="bg-red-600 text-white px-3 py-1 rounded">
+                                Reject
+                            </button>
+                        </form>
+                    @else
+                        <span class="text-gray-500 italic">
+                            Selesai
                         </span>
+                    @endif
+                    
+                </td>
+            </tr>
+            @endforeach
 
-                        <!-- ACTION BUTTONS (ONLY WHEN MENUNGGU) -->
-                        @if($pinjam->status == 'menunggu')
-                            <div class="flex gap-2">
-
-                                <!-- APPROVE -->
-                                <form action="{{ route('admin.peminjaman.approve', $pinjam->id) }}" method="POST">
-                                    @csrf
-                                    <button class="px-4 py-1.5 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition">
-                                        Setujui
-                                    </button>
-                                </form>
-
-                                <!-- REJECT -->
-                                <form action="{{ route('admin.peminjaman.reject', $pinjam->id) }}" method="POST">
-                                    @csrf
-                                    <button class="px-4 py-1.5 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition">
-                                        Tolak
-                                    </button>
-                                </form>
-
-                            </div>
-                        @endif
-
-                    </div>
-
-                </div>
-
-            @empty
-                <p class="text-gray-500 text-sm">Belum ada permintaan peminjaman.</p>
-            @endforelse
-
-        </div>
-    </div>
-
+        </tbody>
+    </table>
 </div>
 
 @endsection
