@@ -11,27 +11,33 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 
 /*
 |--------------------------------------------------------------------------
-| HALAMAN UMUM
+| HALAMAN UMUM (HANYA UNTUK GUEST / BELUM LOGIN)
 |--------------------------------------------------------------------------
 */
 
-Route::view('/', 'welcome')->name('welcome');
-Route::view('/fitur', 'fitur')->name('fitur');
-Route::view('/tentang', 'tentang')->name('tentang');
+Route::middleware(['guest'])->group(function () {
+
+    Route::view('/', 'welcome')->name('welcome');
+    Route::view('/fitur', 'fitur')->name('fitur');
+    Route::view('/tentang', 'tentang')->name('tentang');
+
+    // AUTH GUEST
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+});
 
 /*
 |--------------------------------------------------------------------------
-| AUTH
+| LOGOUT (HANYA UNTUK YANG SUDAH LOGIN)
 |--------------------------------------------------------------------------
 */
 
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
-
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->middleware('auth')
+    ->name('logout');
 
 /*
 |--------------------------------------------------------------------------
@@ -59,7 +65,7 @@ Route::get('/barang', [BarangController::class, 'index'])
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth'])->group(function () {
 
     Route::get('/peminjaman/create/{id}', [PeminjamanController::class, 'create'])
         ->name('peminjaman.create');
@@ -73,7 +79,7 @@ Route::middleware('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN AREA (SATU BLOK SAJA ✅)
+| ADMIN AREA (AUTO REDIRECT & AMAN ✅)
 |--------------------------------------------------------------------------
 */
 
@@ -86,7 +92,7 @@ Route::middleware(['auth', 'admin'])
         Route::get('/', fn () => redirect()->route('admin.dashboard'))
             ->name('home');
 
-        // Dashboard Admin (PAKAI CONTROLLER ✅)
+        // Dashboard Admin
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
 
@@ -103,13 +109,12 @@ Route::middleware(['auth', 'admin'])
         Route::post('/peminjaman/{id}/reject', [PeminjamanController::class, 'reject'])
             ->name('peminjaman.reject');
 
+        Route::get('/peminjaman/dikembalikan', [PeminjamanController::class, 'dikembalikanAdmin'])
+            ->name('peminjaman.dikembalikan');
+
         // Manajemen Admin
         Route::get('/manajemen-admin', [AdminController::class, 'manajemenAdmin'])
             ->name('manajemen.admin');
-
-        Route::get('/peminjaman/dikembalikan', [PeminjamanController::class, 'dikembalikanAdmin'])
-    ->name('peminjaman.dikembalikan');
-
     });
 
 /*

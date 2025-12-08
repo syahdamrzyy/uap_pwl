@@ -104,9 +104,11 @@
 
         {{-- BUTTON --}}
         <button type="submit"
-            class="w-full px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow">
-            Ajukan Peminjaman
-        </button>
+    onclick="this.disabled=true; this.innerText='Mengirim...'; this.form.submit();"
+    class="w-full px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow">
+    Ajukan Peminjaman
+</button>
+
 
     </form>
 </div>

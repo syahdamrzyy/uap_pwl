@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 class PeminjamanController extends Controller
 {
     // ============================
-    // USER - AJUKAN PEMINJAMAN
+    // USER - FORM AJUKAN PEMINJAMAN
     // ============================
     public function create($id)
     {
@@ -19,6 +19,9 @@ class PeminjamanController extends Controller
         return view('users.peminjaman.create', compact('barangDipilih'));
     }
 
+    // ============================
+    // USER - SIMPAN PEMINJAMAN
+    // ============================
     public function store(Request $request)
     {
         $request->validate([
@@ -30,22 +33,19 @@ class PeminjamanController extends Controller
             'user_id'        => Auth::id(),
             'barang_id'      => $request->barang_id,
             'tanggal_pinjam' => now()->toDateString(),
-            'status'         => 'menunggu', 
+            'status'         => 'menunggu',
         ]);
 
         return redirect()->route('dashboard.user')
-            ->with('success', 'Peminjaman berhasil diajukan!');
+            ->with('menunggu_admin', 'Peminjaman berhasil diajukan! Menunggu persetujuan admin.');
     }
 
     // ============================
-    // ADMIN - LIHAT SEMUA PERMINTAAN
+    // ADMIN - LIST PERMINTAAN
     // ============================
     public function index()
     {
-        $peminjamans = Peminjaman::with('user', 'barang')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
+        $peminjamans = Peminjaman::with('user', 'barang')->latest()->get();
         return view('admin.peminjaman_admin', compact('peminjamans'));
     }
 
@@ -55,6 +55,7 @@ class PeminjamanController extends Controller
     public function approve($id)
     {
         DB::transaction(function () use ($id) {
+
             $pinjam = Peminjaman::with('barang')->findOrFail($id);
 
             if ($pinjam->status !== 'menunggu') return;
@@ -62,81 +63,77 @@ class PeminjamanController extends Controller
             $barang = $pinjam->barang;
             if (!$barang || $barang->stok <= 0) return;
 
-            // Kurangi stok
             $barang->stok -= 1;
-            $barang->status = $barang->stok > 0 ? 'Tersedia' : 'Tidak Tersedia';
+            $barang->status = $barang->stok > 0 ? 'tersedia' : 'tidak tersedia';
             $barang->save();
 
-            // Update peminjaman
             $pinjam->status = 'dipinjam';
             $pinjam->tanggal_pinjam = now()->toDateString();
             $pinjam->save();
         });
 
-        return back()->with('success', 'Permintaan berhasil disetujui.');
+        return back()->with('approve_sukses', 'Peminjaman berhasil disetujui.');
     }
 
     // ============================
     // ❌ ADMIN - REJECT
     // ============================
-    public function reject($id)
+    public function reject(Request $request, $id)
+{
+    $pinjam = Peminjaman::findOrFail($id);
+
+    if ($pinjam->status !== 'menunggu') {
+        return back()->with('reject_gagal', 'Tidak bisa menolak permintaan ini.');
+    }
+
+    $request->validate([
+        'alasan_ditolak' => 'required|string'
+    ]);
+
+    $pinjam->status = 'ditolak';
+    $pinjam->alasan_ditolak = $request->alasan_ditolak;
+    $pinjam->save();
+
+    return back()->with('reject_gagal', 'Peminjaman berhasil ditolak.');
+}
+
+    // ============================
+    // ✅ USER - KEMBALIKAN BARANG
+    // ============================
+    public function kembalikan($id)
     {
-        $pinjam = Peminjaman::findOrFail($id);
+        DB::transaction(function () use ($id) {
 
-        if ($pinjam->status !== 'menunggu') {
-            return back()->with('error', 'Tidak dapat menolak permintaan ini.');
-        }
+            $pinjam = Peminjaman::with('barang')->findOrFail($id);
 
-        $pinjam->status = 'ditolak';
-        $pinjam->save();
+            if ($pinjam->status !== 'dipinjam') return;
 
-        return back()->with('success', 'Permintaan berhasil ditolak.');
+            $barang = $pinjam->barang;
+            if ($barang) {
+                $barang->stok += 1;
+                $barang->status = 'tersedia';
+                $barang->save();
+            }
+
+            $pinjam->status = 'dikembalikan';
+            $pinjam->tanggal_kembali = now()->toDateString();
+            $pinjam->save();
+        });
+
+        return redirect()->route('dashboard.user')
+            ->with('kembali_sukses', 'Barang berhasil dikembalikan. Terima kasih!');
     }
 
     // ============================
-    // 🔄 USER - KEMBALIKAN BARANG
+    // ✅ ADMIN - LIST DIKEMBALIKAN
     // ============================
-    public function kembalikan($id)
-{
-    DB::transaction(function () use ($id) {
+    public function dikembalikanAdmin()
+    {
+        $peminjamans = Peminjaman::with('user', 'barang')
+            ->where('status', 'dikembalikan')
+            ->latest()
+            ->get();
 
-        $pinjam = Peminjaman::with('barang')->findOrFail($id);
-
-        // Hanya bisa dikembalikan jika status Dipinjam
-        if ($pinjam->status !== 'dipinjam') {
-            return;
-        }
-
-        $barang = $pinjam->barang;
-
-        if ($barang) {
-            // Tambah stok kembali
-            $barang->stok += 1;
-            $barang->status = 'Tersedia';
-            $barang->save();
-        }
-
-        // Update status peminjaman
-        $pinjam->status = 'dikembalikan';
-        $pinjam->tanggal_kembali = now()->toDateString();
-        $pinjam->save();
-    });
-
-    return redirect()->route('dashboard.user')
-        ->with('success', 'Barang berhasil dikembalikan. Terima kasih!');
-}
-
-// ============================
-// ✅ ADMIN - LIST BARANG DIKEMBALIKAN
-// ============================
-public function dikembalikanAdmin()
-{
-    $peminjamans = Peminjaman::with('user', 'barang')
-        ->where('status', 'dikembalikan')
-        ->latest()
-        ->get();
-
-    return view('admin.peminjaman_dikembalikan', compact('peminjamans'));
-}
-
+        return view('admin.peminjaman_dikembalikan', compact('peminjamans'));
+    }
 }

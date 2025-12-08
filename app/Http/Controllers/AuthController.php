@@ -18,6 +18,11 @@ class AuthController extends Controller
      * ========================= */
     public function showRegister()
     {
+        // Jika sudah login, tidak boleh ke halaman register
+        if (Auth::check()) {
+            return redirect()->route('dashboard.user');
+        }
+
         return view('auth.register');
     }
 
@@ -37,6 +42,7 @@ class AuthController extends Controller
                 'email'          => $request->email,
                 'password'       => Hash::make($request->password),
                 'remember_token' => $token,
+                'role'           => 'user', // ✅ default role user
             ]);
 
             // Kirim email verifikasi
@@ -48,13 +54,14 @@ class AuthController extends Controller
 
             Log::info("User registered: {$user->email}, email verifikasi terkirim.");
 
-            return redirect('/login')->with('success', 'Registrasi berhasil! Silakan cek email untuk verifikasi akun.');
+            return redirect()->route('login')
+                ->with('success', 'Registrasi berhasil! Silakan cek email untuk verifikasi akun.');
 
         } catch (Exception $e) {
-            // Catat error di log Laravel
             Log::error('Gagal mengirim email verifikasi: ' . $e->getMessage());
 
-            return redirect('/login')->with('error', 'Pendaftaran berhasil, tapi gagal mengirim email verifikasi.');
+            return redirect()->route('login')
+                ->with('error', 'Pendaftaran berhasil, tapi gagal mengirim email verifikasi.');
         }
     }
 
@@ -63,36 +70,51 @@ class AuthController extends Controller
      * ========================= */
     public function showLogin()
     {
+        // ✅ Jika sudah login, langsung lempar sesuai role
+        if (Auth::check()) {
+            if (auth()->user()->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+
+            return redirect()->route('dashboard.user');
+        }
+
         return view('auth.login');
     }
 
     public function login(Request $request)
-{
-    $request->validate([
-        'email'    => 'required|email',
-        'password' => 'required|string',
-    ]);
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required|string',
+        ]);
 
-    $credentials = $request->only('email', 'password');
+        $credentials = $request->only('email', 'password');
 
-    if (!Auth::attempt($credentials)) {
-        return back()->with('error', 'Email atau password salah.');
+        if (!Auth::attempt($credentials)) {
+            return back()->with('error', 'Email atau password salah.');
+        }
+
+        $request->session()->regenerate(); // ✅ amankan session
+
+        $user = Auth::user();
+
+        // ✅ Cek verifikasi email
+        if (is_null($user->email_verified_at)) {
+            Auth::logout();
+            return redirect()->route('login')
+                ->with('error', 'Silakan verifikasi email Anda terlebih dahulu.');
+        }
+
+        // ✅ Redirect sesuai role
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard')
+                ->with('success', 'Selamat datang, Admin!');
+        }
+
+        return redirect()->route('dashboard.user')
+            ->with('success', 'Berhasil login!');
     }
-
-    $user = Auth::user();
-
-    if (is_null($user->email_verified_at)) {
-        Auth::logout();
-        return redirect('/login')->with('error', 'Silakan verifikasi email Anda terlebih dahulu.');
-    }
-
-    // ✅ Arahkan sesuai role
-    if ($user->role === 'admin') {
-    return redirect()->route('admin.dashboard')->with('success', 'Selamat datang, Admin!');
-    }
-
-    return redirect()->route('dashboard.user')->with('success', 'Berhasil login!');
-}
 
     /* =========================
      *  LOGOUT
@@ -100,30 +122,33 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('success', 'Berhasil logout.');
+        return redirect()->route('login')
+            ->with('success', 'Berhasil logout.');
     }
 
     /* =========================
      *  VERIFIKASI EMAIL
      * ========================= */
-public function verifyUser($token)
-{
-    $user = User::where('remember_token', $token)->first();
+    public function verifyUser($token)
+    {
+        $user = User::where('remember_token', $token)->first();
 
-    if (!$user) {
-        return redirect('/login')->with('error', 'Token tidak valid atau sudah digunakan.');
+        if (!$user) {
+            return redirect()->route('login')
+                ->with('error', 'Token tidak valid atau sudah digunakan.');
+        }
+
+        $user->email_verified_at = now();
+        $user->remember_token = null;
+        $user->save();
+
+        $user->refresh();
+
+        return redirect()->route('login')
+            ->with('success', 'Email kamu berhasil diverifikasi! Silakan login.');
     }
-
-    $user->email_verified_at = now();
-    $user->remember_token = null;
-    $user->save();
-
-    // refresh cache user
-    $user->refresh();
-
-    return redirect('/login')->with('success', 'Email kamu berhasil diverifikasi! Silakan login.');
-}
 }

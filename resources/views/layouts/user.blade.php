@@ -4,8 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>@yield('title', 'Dashboard User | PERKEDEL')</title>
+
+  <!-- ✅ Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ✅ Font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- ✅ SweetAlert -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- ✅ Animate.css (BIAR ALERT KEREN) -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -23,36 +35,36 @@
     </div>
 
     <div class="flex items-center gap-4">
-<div class="flex items-center gap-2 bg-gray-100 px-4 py-1 rounded-full">
-  <div class="w-4 h-4 rounded-full 
-      @if(Auth::user()->role === 'admin')
-          bg-gradient-to-br from-red-400 to-pink-500
-      @else
-          bg-gradient-to-br from-indigo-400 to-purple-500
-      @endif">
-  </div>
+      <div class="flex items-center gap-2 bg-gray-100 px-4 py-1 rounded-full">
+        <div class="w-4 h-4 rounded-full 
+            @if(Auth::user()->role === 'admin')
+                bg-gradient-to-br from-red-400 to-pink-500
+            @else
+                bg-gradient-to-br from-indigo-400 to-purple-500
+            @endif">
+        </div>
 
-  @if(Auth::check())
-    <span class="font-medium text-gray-700 text-sm">
-    {{ ucfirst(optional(Auth::user())->name ?? 'User') }}
-    </span>
-    @if(Auth::user()->role === 'admin')
-      <span class="text-gray-500 text-sm">PERKEDEL</span>
-    @else
-      <span class="text-gray-500 text-sm">Mahasiswa</span>
-    @endif
-  @endif
-</div>
+        @if(Auth::check())
+          <span class="font-medium text-gray-700 text-sm">
+            {{ ucfirst(optional(Auth::user())->name ?? 'User') }}
+          </span>
+          @if(Auth::user()->role === 'admin')
+            <span class="text-gray-500 text-sm">PERKEDEL</span>
+          @else
+            <span class="text-gray-500 text-sm">Mahasiswa</span>
+          @endif
+        @endif
+      </div>
 
-<a href="#" 
-   onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-   class="bg-red-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-red-600 transition">
-   Keluar
-</a>
+      <a href="#" 
+        onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+        class="bg-red-500 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-red-600 transition">
+        Keluar
+      </a>
 
-<form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-    @csrf
-</form>
+      <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+          @csrf
+      </form>
     </div>
   </nav>
 

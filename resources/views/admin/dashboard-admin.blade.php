@@ -98,6 +98,38 @@ const pieChart = new Chart(document.getElementById('pieChart'), {
 });
 
 </script>
+@if(session('approve_sukses'))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    Swal.fire({
+        icon: 'success',
+        title: 'Disetujui ✅',
+        text: "{{ session('approve_sukses') }}",
+        confirmButtonColor: '#16a34a',
+        confirmButtonText: 'Mantap',
+        showClass: { popup: 'animate__animated animate__fadeInDown' },
+        hideClass: { popup: 'animate__animated animate__fadeOutUp' }
+    });
+});
+</script>
+@endif
+
+
+@if(session('reject_gagal'))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    Swal.fire({
+        icon: 'error',
+        title: 'Ditolak ❌',
+        text: "{{ session('reject_gagal') }}",
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'OK',
+        showClass: { popup: 'animate__animated animate__fadeInDown' },
+        hideClass: { popup: 'animate__animated animate__fadeOutUp' }
+    });
+});
+</script>
+@endif
 
 
 @endsection

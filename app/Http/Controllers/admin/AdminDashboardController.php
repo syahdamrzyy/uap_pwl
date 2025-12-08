@@ -39,18 +39,30 @@ class AdminDashboardController extends Controller
             ->whereYear('created_at', $month->year)
             ->count();
     }
+// =============================
+//  PIE CHART → BERDASARKAN STOK REAL ✅
+// =============================
 
-    // =============================
-    //  PIE CHART → STATUS BARANG ✅
-    // =============================
-    $statusLabels = ['Tersedia', 'Dipinjam', 'Tidak Tersedia'];
+// ✅ Total stok barang di gudang
+$totalStok = Barang::sum('stok');
 
-    $statusCount = [
-        \App\Models\Barang::where('status', 'Tersedia')->count(),
-        \App\Models\Barang::where('status', 'Dipinjam')->count(),
-        \App\Models\Barang::where('status', 'Tidak Tersedia')->count(),
-    ];
+// ✅ Total unit yang sedang dipinjam
+$dipinjam = Peminjaman::where('status', 'dipinjam')->count();
 
+// ✅ Stok tersedia = total stok + yang sedang dipinjam
+$tersedia = $totalStok;
+
+// ✅ Jika suatu saat kamu pakai status rusak:
+// $tidakTersedia = Barang::where('status', 'tidak tersedia')->sum('stok');
+$tidakTersedia = Barang::where('stok', 0)->count();
+
+$statusLabels = ['tersedia', 'dipinjam', 'tidak tersedia'];
+
+$statusCount = [
+    $tersedia,
+    $dipinjam,
+    $tidakTersedia
+];
     // =============================
     //  RETURN
     // =============================
