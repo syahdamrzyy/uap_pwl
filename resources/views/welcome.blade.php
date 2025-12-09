@@ -14,7 +14,6 @@
             overflow-y: auto;
         }
 
-        /* === BUBBLE BACKGROUND === */
         .bubble {
             position: absolute;
             border-radius: 50%;
@@ -38,7 +37,7 @@
 
 <body class="min-h-screen flex flex-col bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-700 relative">
 
-    <!-- Bubble background -->
+    <!-- Bubble -->
     <div class="bubble bubble-1"></div>
     <div class="bubble bubble-2"></div>
     <div class="bubble bubble-3"></div>
@@ -73,15 +72,16 @@
                 transparan, dan efisien untuk seluruh civitas akademika.
             </p>
             <div class="flex space-x-4">
-                <a href="#" class="bg-white text-indigo-600 font-semibold px-6 py-3 rounded-xl shadow hover:shadow-lg transition">
+                <a href="{{ route('login') }}" class="bg-white text-indigo-600 font-semibold px-6 py-3 rounded-xl shadow hover:shadow-lg transition">
                     Mulai Sekarang
                 </a>
-                <a href="#" class="border border-white px-6 py-3 rounded-xl hover:bg-white/10 transition">
+                <a href="{{ route('fitur') }}" class="border border-white px-6 py-3 rounded-xl hover:bg-white/10 transition">
                     Pelajari Lebih Lanjut
                 </a>
             </div>
         </div>
 
+        <!-- ✅ CARD INVENTARIS (DATABASE + FALLBACK) -->
         <div class="relative mt-10 md:mt-0">
             <div class="bg-white rounded-2xl shadow-2xl p-6 w-80 md:w-96">
                 <div class="flex space-x-2 mb-4">
@@ -89,19 +89,49 @@
                     <span class="w-3 h-3 bg-yellow-400 rounded-full"></span>
                     <span class="w-3 h-3 bg-green-400 rounded-full"></span>
                 </div>
+
                 <div class="space-y-3">
-                    <div class="p-4 rounded-xl shadow">
-                        <p class="font-medium text-gray-800">Nama Barang</p>
-                        <p class="text-sm text-gray-500">Status</p>
-                    </div>
-                    <div class="p-4 rounded-xl shadow">
-                        <p class="font-medium text-gray-800">Nama Barang</p>
-                        <p class="text-sm text-gray-500">Status</p>
-                    </div>
-                    <div class="p-4 rounded-xl shadow">
-                        <p class="font-medium text-gray-800">Nama Barang</p>
-                        <p class="text-sm text-gray-500">Status</p>
-                    </div>
+
+                    @isset($barangs)
+                        @forelse($barangs as $barang)
+                            <div class="p-4 rounded-xl shadow">
+                                <p class="font-medium text-gray-800">
+                                    {{ $barang->nama_barang }}
+                                </p>
+
+                                @if($barang->stok > 0)
+                                    <p class="text-sm text-green-600 font-semibold">
+                                        Tersedia ({{ $barang->stok }})
+                                    </p>
+                                @else
+                                    <p class="text-sm text-red-500 font-semibold">
+                                        Tidak Tersedia
+                                    </p>
+                                @endif
+                            </div>
+                        @empty
+                            <div class="p-4 rounded-xl shadow text-center text-gray-500">
+                                Data barang belum tersedia
+                            </div>
+                        @endforelse
+                    @else
+                        <!-- ✅ FALLBACK JIKA CONTROLLER BELUM KIRIM DATA -->
+                        <div class="p-4 rounded-xl shadow">
+                            <p class="font-medium text-gray-800">Proyektor Infocus</p>
+                            <p class="text-sm text-green-600 font-semibold">Tersedia</p>
+                        </div>
+
+                        <div class="p-4 rounded-xl shadow">
+                            <p class="font-medium text-gray-800">Laptop Acer Aspire</p>
+                            <p class="text-sm text-yellow-500 font-semibold">Dipinjam</p>
+                        </div>
+
+                        <div class="p-4 rounded-xl shadow">
+                            <p class="font-medium text-gray-800">Kamera DSLR Canon</p>
+                            <p class="text-sm text-red-500 font-semibold">Tidak Tersedia</p>
+                        </div>
+                    @endisset
+
                 </div>
             </div>
         </div>
