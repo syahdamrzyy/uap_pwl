@@ -7,6 +7,7 @@ use App\Models\Barang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache; // ✅ CACHE AKTIF
 
 class PeminjamanController extends Controller
 {
@@ -15,6 +16,11 @@ class PeminjamanController extends Controller
     // ============================
     public function create($id)
     {
+        // ✅ Admin tidak boleh mengakses form pinjam
+        if (Auth::user()->role !== 'user') {
+            abort(403, 'Admin tidak boleh meminjam barang.');
+        }
+
         $barangDipilih = Barang::findOrFail($id);
         return view('users.peminjaman.create', compact('barangDipilih'));
     }
@@ -24,6 +30,11 @@ class PeminjamanController extends Controller
     // ============================
     public function store(Request $request)
     {
+        // ✅ Admin tidak boleh submit peminjaman
+        if (Auth::user()->role !== 'user') {
+            abort(403, 'Admin tidak boleh meminjam barang.');
+        }
+
         $request->validate([
             'barang_id' => 'required|exists:barangs,id',
             'keperluan' => 'nullable|string|max:255',
@@ -34,7 +45,12 @@ class PeminjamanController extends Controller
             'barang_id'      => $request->barang_id,
             'tanggal_pinjam' => now()->toDateString(),
             'status'         => 'menunggu',
+            'keperluan'      => $request->keperluan,
         ]);
+
+        // ✅ CLEAR CACHE SAAT USER MINJAM
+        Cache::forget('pending_peminjaman');
+        Cache::forget('notif_menunggu');
 
         return redirect()->route('dashboard.user')
             ->with('menunggu_admin', 'Peminjaman berhasil diajukan! Menunggu persetujuan admin.');
@@ -72,6 +88,12 @@ class PeminjamanController extends Controller
             $pinjam->save();
         });
 
+        // ✅ CLEAR CACHE SAAT APPROVE
+        Cache::forget('pending_peminjaman');
+        Cache::forget('total_peminjaman');
+        Cache::forget('notif_menunggu');
+        Cache::forget('pie_stok');
+
         return back()->with('approve_sukses', 'Peminjaman berhasil disetujui.');
     }
 
@@ -79,23 +101,27 @@ class PeminjamanController extends Controller
     // ❌ ADMIN - REJECT
     // ============================
     public function reject(Request $request, $id)
-{
-    $pinjam = Peminjaman::findOrFail($id);
+    {
+        $pinjam = Peminjaman::findOrFail($id);
 
-    if ($pinjam->status !== 'menunggu') {
-        return back()->with('reject_gagal', 'Tidak bisa menolak permintaan ini.');
+        if ($pinjam->status !== 'menunggu') {
+            return back()->with('reject_gagal', 'Tidak bisa menolak permintaan ini.');
+        }
+
+        $request->validate([
+            'alasan_ditolak' => 'required|string'
+        ]);
+
+        $pinjam->status = 'ditolak';
+        $pinjam->alasan_ditolak = $request->alasan_ditolak;
+        $pinjam->save();
+
+        // ✅ CLEAR CACHE SAAT REJECT
+        Cache::forget('pending_peminjaman');
+        Cache::forget('notif_menunggu');
+
+        return back()->with('reject_gagal', 'Peminjaman berhasil ditolak.');
     }
-
-    $request->validate([
-        'alasan_ditolak' => 'required|string'
-    ]);
-
-    $pinjam->status = 'ditolak';
-    $pinjam->alasan_ditolak = $request->alasan_ditolak;
-    $pinjam->save();
-
-    return back()->with('reject_gagal', 'Peminjaman berhasil ditolak.');
-}
 
     // ============================
     // ✅ USER - KEMBALIKAN BARANG
@@ -119,6 +145,11 @@ class PeminjamanController extends Controller
             $pinjam->tanggal_kembali = now()->toDateString();
             $pinjam->save();
         });
+
+        // ✅ CLEAR CACHE SAAT BARANG DIKEMBALIKAN
+        Cache::forget('dikembalikan');
+        Cache::forget('notif_dikembalikan');
+        Cache::forget('pie_stok');
 
         return redirect()->route('dashboard.user')
             ->with('kembali_sukses', 'Barang berhasil dikembalikan. Terima kasih!');

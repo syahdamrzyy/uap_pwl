@@ -26,7 +26,7 @@
                 <thead class="bg-indigo-600 text-white uppercase text-sm tracking-wide">
                     <tr>
                         <th class="p-3">User</th>
-                        <th class="p-3">Barang</th>
+                        <th class="p-3">Barang & Keperluan</th>
                         <th class="p-3">Tanggal</th>
                         <th class="p-3">Status</th>
                         <th class="p-3 text-center">Aksi</th>
@@ -36,18 +36,35 @@
                     @foreach($peminjamans as $p)
                     <tr class="border-b hover:shadow-md transition transform hover:-translate-y-0.5">
 
+                        {{-- USER --}}
                         <td class="p-3 font-medium text-gray-800 search-target">
                             {{ $p->user->name }}
                         </td>
 
+                        {{-- BARANG + KEPERLUAN --}}
                         <td class="p-3 search-target">
-                            {{ $p->barang->nama_barang }}
+                            <div class="font-semibold text-gray-800">
+                                {{ $p->barang->nama_barang }}
+                            </div>
+
+                            @if($p->keperluan)
+                                <div class="text-xs text-gray-500 italic mt-1">
+                                    Keperluan: "{{ $p->keperluan }}"
+                                </div>
+
+                                {{-- disimpan untuk popup --}}
+                                <span id="keperluan-{{ $p->id }}" class="hidden">
+                                    {{ $p->keperluan }}
+                                </span>
+                            @endif
                         </td>
 
+                        {{-- TANGGAL --}}
                         <td class="p-3 search-target">
                             {{ \Carbon\Carbon::parse($p->tanggal_pinjam)->format('d M Y') }}
                         </td>
 
+                        {{-- STATUS --}}
                         <td class="p-3">
                             @php
                                 $statusColors = [
@@ -65,6 +82,7 @@
                             </span>
                         </td>
 
+                        {{-- AKSI --}}
                         <td class="p-3 flex justify-center gap-3">
 
                             @if(strtolower($p->status) == 'menunggu')

@@ -20,6 +20,9 @@ class AuthController extends Controller
     {
         // Jika sudah login, tidak boleh ke halaman register
         if (Auth::check()) {
+            if (auth()->user()->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
             return redirect()->route('dashboard.user');
         }
 
@@ -91,11 +94,16 @@ class AuthController extends Controller
 
         $credentials = $request->only('email', 'password');
 
+        // ✅ Cek kredensial dulu
         if (!Auth::attempt($credentials)) {
             return back()->with('error', 'Email atau password salah.');
         }
 
-        $request->session()->regenerate(); // ✅ amankan session
+        // ✅ SINGLE DEVICE LOGIN (logout device lain)
+        Auth::logoutOtherDevices($request->password);
+
+        // ✅ Amankan session (session fixation protection)
+        $request->session()->regenerate();
 
         $user = Auth::user();
 

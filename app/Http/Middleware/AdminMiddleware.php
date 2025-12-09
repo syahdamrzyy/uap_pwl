@@ -10,8 +10,13 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!Auth::check() || Auth::user()->role !== 'admin') {
-            return redirect('/login')->with('error', 'Akses ditolak! Hanya admin yang bisa masuk.');
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'Silakan login terlebih dahulu.');
+        }
+
+        if (Auth::user()->role !== 'admin') {
+            // Bisa pakai abort(403) juga, tapi ini lebih user-friendly
+            return redirect('/home')->with('error', 'Akses ditolak! Hanya admin yang bisa masuk.');
         }
 
         return $next($request);

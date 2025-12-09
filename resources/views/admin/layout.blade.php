@@ -12,6 +12,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
 </head>
 
 <body class="bg-gray-100">
@@ -24,6 +27,7 @@
 
             <nav class="mt-4 flex flex-col gap-1">
 
+                {{-- DASHBOARD --}}
                 <a href="/admin"
                    class="block py-3 px-6 rounded-r-full font-medium
                    {{ Request::is('admin') || Request::is('admin/dashboard') 
@@ -32,6 +36,7 @@
                     Dashboard
                 </a>
 
+                {{-- MANAJEMEN INVENTARIS --}}
                 <a href="{{ route('admin.barang.index') }}"
                    class="block py-3 px-6 rounded-r-full font-medium
                    {{ Request::is('admin/barang*') 
@@ -40,20 +45,34 @@
                     Manajemen Inventaris
                 </a>
 
+                {{-- PERMINTAAN PEMINJAMAN + BADGE REALTIME --}}
                 <a href="{{ route('admin.peminjaman.index') }}"
-                   class="block py-3 px-6 rounded-r-full font-medium
+                   class="relative flex items-center justify-between py-3 px-6 rounded-r-full font-medium
                    {{ (Request::is('admin/peminjaman') || Request::is('admin/peminjaman/*')) && !Request::is('admin/peminjaman/dikembalikan') 
                         ? 'bg-blue-600 text-white' 
                         : 'text-gray-700 hover:bg-gray-100' }}">
-                    Permintaan Peminjaman
+
+                    <span>Permintaan Peminjaman</span>
+
+                    <span id="badge-peminjaman"
+                          class="ml-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse hidden">
+                        0
+                    </span>
                 </a>
 
+                {{-- BARANG DIKEMBALIKAN + BADGE REALTIME --}}
                 <a href="{{ route('admin.peminjaman.dikembalikan') }}"
-                   class="block py-3 px-6 rounded-r-full font-medium
+                   class="relative flex items-center justify-between py-3 px-6 rounded-r-full font-medium
                    {{ Request::is('admin/peminjaman/dikembalikan') 
                         ? 'bg-blue-600 text-white' 
                         : 'text-gray-700 hover:bg-gray-100' }}">
-                    Barang Dikembalikan
+
+                    <span>Barang Dikembalikan</span>
+
+                    <span id="badge-dikembalikan"
+                          class="ml-2 bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse hidden">
+                        0
+                    </span>
                 </a>
 
             </nav>
@@ -108,8 +127,17 @@ Swal.fire({
 {{-- ✅ FUNGSI TOLAK + ALASAN --}}
 <script>
 function tolakPeminjaman(id) {
+    const keperluanEl = document.getElementById('keperluan-' + id);
+    const keperluan = keperluanEl ? keperluanEl.innerText : 'Tidak ada keperluan';
+
     Swal.fire({
         title: 'Tolak Peminjaman',
+        html: `
+            <p class="text-sm text-gray-600 mb-3">
+                <b>Keperluan User:</b><br>
+                "${keperluan}"
+            </p>
+        `,
         input: 'textarea',
         inputLabel: 'Alasan Penolakan',
         inputPlaceholder: 'Masukkan alasan penolakan...',
@@ -128,6 +156,83 @@ function tolakPeminjaman(id) {
         }
     });
 }
+</script>
+
+{{-- ✅ REALTIME NOTIF + AUTO-HIDE DI HALAMAN TERKAIT --}}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const badgePinjam = document.getElementById('badge-peminjaman');
+    const badgeKembali = document.getElementById('badge-dikembalikan');
+
+    const path = window.location.pathname;
+
+    const onPeminjamanPage = path.startsWith('/admin/peminjaman') && !path.includes('dikembalikan');
+    // ✅ TANDAI NOTIF SUDAH DIBACA
+if (onPeminjamanPage) {
+    fetch('/admin/notif-read/peminjaman', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    });
+}
+
+    const onDikembalikanPage = path.startsWith('/admin/peminjaman/dikembalikan');
+
+    if (onDikembalikanPage) {
+    fetch('/admin/notif-read/dikembalikan', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    });
+}
+
+    // 🟢 Auto-hide badge sesuai halaman yang sedang dibuka
+    if (onPeminjamanPage && badgePinjam) {
+        badgePinjam.classList.add('hidden');
+    }
+    if (onDikembalikanPage && badgeKembali) {
+        badgeKembali.classList.add('hidden');
+    }
+
+    function updateNotif() {
+        fetch('/admin/notif-count')
+            .then(res => res.json())
+            .then(data => {
+
+                // 🔴 NOTIF PERMINTAAN (menunggu)
+                if (!onPeminjamanPage && badgePinjam) {
+                    if (data.peminjaman > 0) {
+                        badgePinjam.innerText = data.peminjaman;
+                        badgePinjam.classList.remove('hidden');
+                    } else {
+                        badgePinjam.classList.add('hidden');
+                    }
+                }
+
+                // 🟢 NOTIF DIKEMBALIKAN (dikembalikan)
+                if (!onDikembalikanPage && badgeKembali) {
+                    if (data.dikembalikan > 0) {
+                        badgeKembali.innerText = data.dikembalikan;
+                        badgeKembali.classList.remove('hidden');
+                    } else {
+                        badgeKembali.classList.add('hidden');
+                    }
+                }
+            })
+            .catch(() => {
+                // error fetch, diamkan aja biar nggak ganggu
+            });
+    }
+
+    // ✅ Load awal
+    updateNotif();
+
+    // ⚡ Realtime setiap 5 detik
+    setInterval(updateNotif, 5000);
+});
 </script>
 
 </body>

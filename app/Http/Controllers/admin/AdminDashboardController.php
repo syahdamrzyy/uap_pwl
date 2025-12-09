@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Controller;
 use App\Models\Barang;
 use App\Models\User;
@@ -11,69 +12,70 @@ use Carbon\Carbon;
 class AdminDashboardController extends Controller
 {
     public function index()
-{
-    // =============================
-    //  STATISTIK UTAMA
-    // =============================
-    $totalBarang = \App\Models\Barang::count();
-    $penggunaAktif = \App\Models\User::whereNotNull('email_verified_at')->count();
-    $pending = \App\Models\Peminjaman::where('status', 'menunggu')->count();
-    $dikembalikan = \App\Models\Peminjaman::where('status', 'dikembalikan')->count();
-    $totalPeminjaman = \App\Models\Peminjaman::count();
+    {
+        // ✅ CACHE 60 DETIK
+        $totalBarang = Cache::remember('total_barang', 60, fn () => Barang::count());
 
-    $tingkatPengembalian = $totalPeminjaman > 0
-        ? round(($dikembalikan / $totalPeminjaman) * 100)
-        : 0;
+        $penggunaAktif = Cache::remember('pengguna_aktif', 60, function () {
+            return User::whereNotNull('email_verified_at')->count();
+        });
 
-    // =============================
-    //  LINE CHART → Tren Peminjaman
-    // =============================
-    $months = [];
-    $peminjaman = [];
+        $pending = Cache::remember('pending_peminjaman', 30, function () {
+            return Peminjaman::where('status', 'menunggu')->count();
+        });
 
-    for ($i = 5; $i >= 0; $i--) {
-        $month = \Carbon\Carbon::now()->subMonths($i);
-        $months[] = $month->format('M');
+        $dikembalikan = Cache::remember('dikembalikan', 30, function () {
+            return Peminjaman::where('status', 'dikembalikan')->count();
+        });
 
-        $peminjaman[] = \App\Models\Peminjaman::whereMonth('created_at', $month->month)
-            ->whereYear('created_at', $month->year)
-            ->count();
+        $totalPeminjaman = Cache::remember('total_peminjaman', 60, fn () => Peminjaman::count());
+
+        $tingkatPengembalian = $totalPeminjaman > 0
+            ? round(($dikembalikan / $totalPeminjaman) * 100)
+            : 0;
+
+        // =============================
+        // ✅ LINE CHART → CACHE
+        // =============================
+        $chart = Cache::remember('chart_peminjaman_6bulan', 60, function () {
+            $months = [];
+            $peminjaman = [];
+
+            for ($i = 5; $i >= 0; $i--) {
+                $month = Carbon::now()->subMonths($i);
+                $months[] = $month->format('M');
+
+                $peminjaman[] = Peminjaman::whereMonth('created_at', $month->month)
+                    ->whereYear('created_at', $month->year)
+                    ->count();
+            }
+
+            return compact('months', 'peminjaman');
+        });
+
+        // =============================
+        // ✅ PIE CHART → CACHE
+        // =============================
+        $pie = Cache::remember('pie_stok', 60, function () {
+
+            $totalStok = Barang::sum('stok');
+            $dipinjam = Peminjaman::where('status', 'dipinjam')->count();
+            $tidakTersedia = Barang::where('stok', 0)->count();
+
+            return [
+                'statusLabels' => ['tersedia', 'dipinjam', 'tidak tersedia'],
+                'statusCount'  => [$totalStok, $dipinjam, $tidakTersedia]
+            ];
+        });
+
+        return view('admin.dashboard-admin', [
+            'totalBarang' => $totalBarang,
+            'penggunaAktif' => $penggunaAktif,
+            'pending' => $pending,
+            'months' => $chart['months'],
+            'peminjaman' => $chart['peminjaman'],
+            'statusLabels' => $pie['statusLabels'],
+            'statusCount' => $pie['statusCount']
+        ]);
     }
-// =============================
-//  PIE CHART → BERDASARKAN STOK REAL ✅
-// =============================
-
-// ✅ Total stok barang di gudang
-$totalStok = Barang::sum('stok');
-
-// ✅ Total unit yang sedang dipinjam
-$dipinjam = Peminjaman::where('status', 'dipinjam')->count();
-
-// ✅ Stok tersedia = total stok + yang sedang dipinjam
-$tersedia = $totalStok;
-
-// ✅ Jika suatu saat kamu pakai status rusak:
-// $tidakTersedia = Barang::where('status', 'tidak tersedia')->sum('stok');
-$tidakTersedia = Barang::where('stok', 0)->count();
-
-$statusLabels = ['tersedia', 'dipinjam', 'tidak tersedia'];
-
-$statusCount = [
-    $tersedia,
-    $dipinjam,
-    $tidakTersedia
-];
-    // =============================
-    //  RETURN
-    // =============================
-    return view('admin.dashboard-admin', compact(
-        'totalBarang',
-        'penggunaAktif',
-        'pending',
-        'months',
-        'peminjaman',
-        'statusLabels',
-        'statusCount'
-    ));
-}
 }

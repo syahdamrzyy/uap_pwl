@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\BarangApiController;
+use App\Http\Controllers\API\PeminjamanApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +19,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::get('/barang', [BarangApiController::class, 'index']);
+Route::get('/barang/{id}', [BarangApiController::class, 'show']);
+
+Route::get('/peminjaman', [PeminjamanApiController::class, 'index']);
+Route::get('/peminjaman/user/{id}', [PeminjamanApiController::class, 'byUser']);
+Route::get('/peminjaman-filter', [PeminjamanApiController::class, 'filter']);
